@@ -16,7 +16,8 @@ public class yuv3main : Form
 {
     static public void Main()
     {
-        Application.Run(new yuv3.MainWindow());
+        yuv3.AppState state = new yuv3.AppState();
+        Application.Run(new yuv3.MainWindow(state));
     }
 }
 
