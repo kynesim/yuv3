@@ -12,7 +12,7 @@ namespace yuv3
         StatusBar mStatus;
         MenuStrip mMenu;
 
-        DisplayYUVControl mYUV;
+        public DisplayYUVControl mYUV;
         
         public void SetStatus(String s, bool andDialog)
         {
@@ -39,13 +39,15 @@ namespace yuv3
             f_open.Click += new System.EventHandler(OnFileOpen);
             f_open.ShortcutKeys = Keys.Control | Keys.O;
 
-            mYUV = new DisplayYUVControl();
+            mYUV = new DisplayYUVControl(inAppState);
             mYUV.Parent = this;
             mYUV.Anchor = AnchorStyles.None;
             mYUV.Dock = DockStyle.Fill;
 
             mStatus= new StatusBar();
             mStatus.Parent = this;
+
+            mAppState.NaturalSize();
             
             SetStatus("Idle", false);
 

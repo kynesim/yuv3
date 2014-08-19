@@ -7,12 +7,21 @@ using System.Drawing;
 
 namespace yuv3
 {
-    class DisplayYUVControl : Control
+    public class DisplayYUVControl : Control
     {
-        
-        public DisplayYUVControl()
+        public AppState mAppState;
+
+        public DisplayYUVControl(AppState in_as)
         {
+            mAppState = in_as;
             Paint += new PaintEventHandler(Render);
+        }
+
+        public void SetSize()
+        {
+            Size = new System.Drawing.Size(mAppState.mYUVFile.mWidth, 
+                                       mAppState.mYUVFile.mHeight);
+
         }
 
         void Render(object sender, PaintEventArgs e)

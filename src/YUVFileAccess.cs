@@ -8,19 +8,19 @@ using System.IO;
 
 namespace yuv3
 {
-    enum YUVFileFormat
+    public enum YUVFileFormat
     {
         YUV420,
         YUYV,
         YVYU
     }
 
-    class YUVFileAccess
+    public class YUVFileAccess
     {
-        string mFileName;
-        int mWidth;
-        int mHeight;
-        YUVFileFormat mFormat;
+        public string mFileName;
+        public int mWidth;
+        public int mHeight;
+        public YUVFileFormat mFormat;
         BinaryReader mReader;
         FileStream mStream;
 

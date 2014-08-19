@@ -8,8 +8,8 @@ namespace yuv3
 {
     public class AppState
     {
-        YUVFileAccess mYUVFile;
-        MainWindow mW;
+        public YUVFileAccess mYUVFile;
+        public MainWindow mW;
 
         public void SetStatus(string in_status, bool withDialog = false)
         {            
@@ -26,6 +26,11 @@ namespace yuv3
         {
             mYUVFile.LoadFile(in_name);
             SetStatus("Loaded " + in_name);
+        }
+
+        public void NaturalSize()
+        {
+            mW.mYUV.SetSize();
         }
 
         public AppState()
