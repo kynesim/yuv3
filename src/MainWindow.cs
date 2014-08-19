@@ -28,9 +28,13 @@ namespace yuv3
             mAppState = inAppState;
             mAppState.SetMainWindow(this);
 
+            TableLayoutPanel topFlow = new TableLayoutPanel();
+            topFlow.Parent = this;
+            topFlow.RowCount = 1;
+            topFlow.Dock = DockStyle.Fill;
 
             mMenu = new MenuStrip();
-            mMenu.Parent = this;
+            topFlow.Controls.Add(mMenu);
             ToolStripMenuItem file = new ToolStripMenuItem("&File");
             mMenu.Items.Add(file);
 
@@ -49,28 +53,39 @@ namespace yuv3
             SplitContainer topSplit = new SplitContainer();
             topSplit.Orientation = Orientation.Vertical;
             topSplit.Anchor = AnchorStyles.Left;
-            topSplit.Dock = DockStyle.Fill;
 
-            topSplit.Parent = this;
+            topFlow.Controls.Add(topSplit);
 
-            Panel controlPanel = new Panel();
+            TableLayoutPanel controlPanel = new TableLayoutPanel();
+
+            controlPanel.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top |
+                AnchorStyles.Bottom;
+            controlPanel.Dock = DockStyle.Fill;
+            controlPanel.RowCount = 1;
 
             {
+                TableLayoutPanel paramPanel = new TableLayoutPanel();
+                paramPanel.RowCount = 2;
                 Label w = new Label(); 
                 w.Text = "Width: ";
-                controlPanel.Controls.Add(w);
+                w.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+                paramPanel.Controls.Add(w, 0, 0);
+                TextBox wval = new TextBox();
+                paramPanel.Controls.Add(wval, 1, 0);
+                paramPanel.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+                controlPanel.Controls.Add(paramPanel);
             }
+
             topSplit.BorderStyle = BorderStyle.FixedSingle;
             topSplit.Panel1.Controls.Add(controlPanel);
             topSplit.Panel1Collapsed = false;
             topSplit.Panel2Collapsed = false;
             topSplit.Panel1MinSize = 200;
-            topSplit.Panel2MinSize = 200;
-            controlPanel.BackColor = System.Drawing.Color.Red;
-            
+            topSplit.Panel2MinSize = 200;            
+            topSplit.Dock = DockStyle.Fill;
+
             mYUV = new DisplayYUVControl(inAppState);
-            mYUV.Anchor = AnchorStyles.None;
-            mYUV.Dock= DockStyle.Fill;
+            mYUV.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
             topSplit.Panel2.Controls.Add(mYUV);
             mYUV.BackColor = System.Drawing.Color.Blue;
 
