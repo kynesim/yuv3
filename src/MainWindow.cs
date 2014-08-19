@@ -38,6 +38,11 @@ namespace yuv3
             //f_open.DropDownItemClicked += new ToolStripItemClickedEventHandler(OnFileOpen);
             f_open.Click += new System.EventHandler(OnFileOpen);
             f_open.ShortcutKeys = Keys.Control | Keys.O;
+            
+            file.DropDownItems.Add(new ToolStripMenuItem("E&xit", null,
+                                                         new System.EventHandler(OnExit),
+                                                         Keys.Control | Keys.X));
+
 
             mYUV = new DisplayYUVControl(inAppState);
             mYUV.Parent = this;
@@ -54,7 +59,10 @@ namespace yuv3
             Text = "YUV3";
         }
 
-
+        void OnExit(object sender, EventArgs e)
+        {
+            Close();
+        }
 
         void OnFileOpen(object sender, EventArgs e)
         {
