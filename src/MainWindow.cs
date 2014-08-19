@@ -28,6 +28,7 @@ namespace yuv3
             mAppState = inAppState;
             mAppState.SetMainWindow(this);
 
+
             mMenu = new MenuStrip();
             mMenu.Parent = this;
             ToolStripMenuItem file = new ToolStripMenuItem("&File");
@@ -42,12 +43,36 @@ namespace yuv3
             file.DropDownItems.Add(new ToolStripMenuItem("E&xit", null,
                                                          new System.EventHandler(OnExit),
                                                          Keys.Control | Keys.X));
+            
 
 
+            SplitContainer topSplit = new SplitContainer();
+            topSplit.Orientation = Orientation.Vertical;
+            topSplit.Anchor = AnchorStyles.Left;
+            topSplit.Dock = DockStyle.Fill;
+
+            topSplit.Parent = this;
+
+            Panel controlPanel = new Panel();
+
+            {
+                Label w = new Label(); 
+                w.Text = "Width: ";
+                controlPanel.Controls.Add(w);
+            }
+            topSplit.BorderStyle = BorderStyle.FixedSingle;
+            topSplit.Panel1.Controls.Add(controlPanel);
+            topSplit.Panel1Collapsed = false;
+            topSplit.Panel2Collapsed = false;
+            topSplit.Panel1MinSize = 200;
+            topSplit.Panel2MinSize = 200;
+            controlPanel.BackColor = System.Drawing.Color.Red;
+            
             mYUV = new DisplayYUVControl(inAppState);
-            mYUV.Parent = this;
             mYUV.Anchor = AnchorStyles.None;
-            mYUV.Dock = DockStyle.Fill;
+            mYUV.Dock= DockStyle.Fill;
+            topSplit.Panel2.Controls.Add(mYUV);
+            mYUV.BackColor = System.Drawing.Color.Blue;
 
             mStatus= new StatusBar();
             mStatus.Parent = this;
