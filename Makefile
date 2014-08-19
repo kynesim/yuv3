@@ -5,7 +5,7 @@
 OBJDIR := obj
 BINDIR := bin
 
-SRCS := MainWindow.cs yuv3.cs AppState.cs
+SRCS := MainWindow.cs yuv3.cs AppState.cs DisplayYUVControl.cs YUVFileAccess.cs
 LOCATED_SRCS := $(SRCS:%=src/%)
 
 all: $(BINDIR)/yuv3.exe
