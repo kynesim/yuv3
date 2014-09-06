@@ -15,7 +15,7 @@ namespace yuv3
         YVYU
     }
 
-    public class YUVFileAccess
+    public class YUVFile
     {
         public string mFileName;
         public int mWidth;
@@ -23,6 +23,16 @@ namespace yuv3
         public YUVFileFormat mFormat;
         BinaryReader mReader;
         FileStream mStream;
+        bool mLoaded;
+
+        public bool Loaded
+        {
+            get 
+            {
+                return mLoaded;
+            }
+        }
+
 
         public void LoadFile(string in_file)
         {
@@ -35,22 +45,30 @@ namespace yuv3
 
                 mStream = result_stream;
                 mReader = new_reader;
+                mLoaded = true;
             }
             else
             {
                 mStream = null;
                 mReader = null;
+                mLoaded = false;
             }
             mFileName = in_file;
         }
-        
-        public YUVFileAccess(string in_file, int w, int h, 
-                      YUVFileFormat fmt)
+
+        public void UserSetWidth(int w) 
         {
             mWidth = w;
+        }
+        
+        public void UserSetHeight(int h)
+        {
             mHeight = h;
-            mFormat = fmt;
-            LoadFile(in_file);
+        }
+        
+        public YUVFile()
+        {
+            mLoaded = false;
         }
     }
 }

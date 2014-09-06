@@ -11,8 +11,9 @@ namespace yuv3
         AppState mAppState;
         StatusBar mStatus;
         MenuStrip mMenu;
+        FileInterfacePanel[] mFiles;
 
-        public DisplayYUVControl mYUV;
+        public DisplayYUVControl mDisplay;
         
         public void SetStatus(String s, bool andDialog)
         {
@@ -38,11 +39,11 @@ namespace yuv3
             ToolStripMenuItem file = new ToolStripMenuItem("&File");
             mMenu.Items.Add(file);
 
-            ToolStripMenuItem f_open = new ToolStripMenuItem("&Open..");
-            file.DropDownItems.Add(f_open);
+            //ToolStripMenuItem f_open = new ToolStripMenuItem("&Open..");
+           // file.DropDownItems.Add(f_open);
             //f_open.DropDownItemClicked += new ToolStripItemClickedEventHandler(OnFileOpen);
-            f_open.Click += new System.EventHandler(OnFileOpen);
-            f_open.ShortcutKeys = Keys.Control | Keys.O;
+           // f_open.Click += new System.EventHandler(OnFileOpen);
+            //f_open.ShortcutKeys = Keys.Control | Keys.O;
             
             file.DropDownItems.Add(new ToolStripMenuItem("E&xit", null,
                                                          new System.EventHandler(OnExit),
@@ -65,14 +66,33 @@ namespace yuv3
 
             {
                 TableLayoutPanel paramPanel = new TableLayoutPanel();
-                paramPanel.RowCount = 2;
-                Label w = new Label(); 
-                w.Text = "Width: ";
-                w.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-                paramPanel.Controls.Add(w, 0, 0);
-                TextBox wval = new TextBox();
-                paramPanel.Controls.Add(wval, 1, 0);
-                paramPanel.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+                paramPanel.RowCount = 1;
+                paramPanel.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
+
+                mFiles = new FileInterfacePanel[Constants.kNumberOfChannels];
+                for (int i = 0; i < Constants.kNumberOfChannels; ++i)
+                {
+                    mFiles[i] = new FileInterfacePanel(mAppState, i);
+                    paramPanel.Controls.Add(mFiles[i], 0, i);
+                }
+
+                // Label w = new Label(); 
+                // w.Text = "Width: ";
+                // w.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+                // paramPanel.Controls.Add(w, 0, 0);
+                // mWidth = new TextBox();
+                // paramPanel.Controls.Add(mWidth, 1, 0);
+                // mWidth.TextChanged += new EventHandler(OnWidthChanged);
+
+                // Label h = new Label();
+                // h.Text = "Height: ";
+                // h.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+                // paramPanel.Controls.Add(h, 0, 1);
+                // mHeight = new TextBox();
+                // paramPanel.Controls.Add(mHeight, 1, 1);
+                // mHeight.TextChanged += new EventHandler(OnHeightChanged);
+
+                    
                 controlPanel.Controls.Add(paramPanel);
             }
 
@@ -84,16 +104,14 @@ namespace yuv3
             topSplit.Panel2MinSize = 200;            
             topSplit.Dock = DockStyle.Fill;
 
-            mYUV = new DisplayYUVControl(inAppState);
-            mYUV.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            topSplit.Panel2.Controls.Add(mYUV);
-            mYUV.BackColor = System.Drawing.Color.Blue;
+            mDisplay = new DisplayYUVControl(inAppState, null);
+            mDisplay.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            topSplit.Panel2.Controls.Add(mDisplay);
+            mDisplay.BackColor = System.Drawing.Color.Blue;
 
             mStatus= new StatusBar();
             mStatus.Parent = this;
 
-            mAppState.NaturalSize();
-            
             SetStatus("Idle", false);
 
             Text = "YUV3";
@@ -104,22 +122,6 @@ namespace yuv3
             Close();
         }
 
-        void OnFileOpen(object sender, EventArgs e)
-        {
-            OpenFileDialog ofDlg = new OpenFileDialog();
-            DialogResult res = ofDlg.ShowDialog();
-            if (res == DialogResult.OK)
-            {
-                try
-                {
-                    mAppState.LoadFile(ofDlg.FileName);
-                }
-                catch (Exception x)
-                {
-                    mAppState.SetStatus("Cannot open " + ofDlg.FileName + " -" + x, true);
-                }
-            }
-        }
 
     }
 }

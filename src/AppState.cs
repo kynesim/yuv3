@@ -8,7 +8,7 @@ namespace yuv3
 {
     public class AppState
     {
-        public YUVFileAccess mYUVFile;
+        public YUVFile[] mFiles;
         public MainWindow mW;
 
         public void SetStatus(string in_status, bool withDialog = false)
@@ -16,27 +16,35 @@ namespace yuv3
             mW.SetStatus(in_status, withDialog);
         }
 
+        public void UserSetWidth(int which, int w)
+        {
+            // mFiles[which].SetWidth(h);
+        }
+        
+        public void UserSetHeight(int which, int h)
+        {
+            // mFiles[which].SetHeight(h);
+        }
 
         public void SetMainWindow(MainWindow in_mw) 
         {
             mW = in_mw;
         }
 
-        public void LoadFile(string in_name)
+        public void LoadFile(int which, string in_name, int w, int h)
         {
-            mYUVFile.LoadFile(in_name);
-            SetStatus("Loaded " + in_name);
-        }
-
-        public void NaturalSize()
-        {
-            mW.mYUV.SetSize();
+            // mYUVFile.LoadFile(in_name);
+            //m SetStatus("Loaded " + in_name);
         }
 
         public AppState()
         {
             mW = null;
-            mYUVFile = new YUVFileAccess(null, 640, 480, YUVFileFormat.YUYV);
+            mFiles = new YUVFile[Constants.kNumberOfChannels];
+            for (int i = 0; i < mFiles.Length; ++i)
+            {
+                mFiles[i] = new YUVFile();
+            }
         }
     }
 }

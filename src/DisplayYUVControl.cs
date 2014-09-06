@@ -10,18 +10,26 @@ namespace yuv3
     public class DisplayYUVControl : Control
     {
         public AppState mAppState;
+        public YUVFile mFile;
 
-        public DisplayYUVControl(AppState in_as)
+        public DisplayYUVControl(AppState in_as, YUVFile cs)
         {
             mAppState = in_as;
+            mFile = cs;
             Paint += new PaintEventHandler(Render);
         }
 
         public void SetSize()
         {
-            Size = new System.Drawing.Size(mAppState.mYUVFile.mWidth, 
-                                       mAppState.mYUVFile.mHeight);
-
+            if (mFile != null && mFile.Loaded)
+            {
+                Size = new System.Drawing.Size(mFile.mWidth, 
+                                               mFile.mHeight);
+            }
+            else
+            {
+                Size = new System.Drawing.Size(320, 240);
+            }
         }
 
         void Render(object sender, PaintEventArgs e)

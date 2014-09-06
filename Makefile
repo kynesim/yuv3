@@ -5,10 +5,14 @@
 OBJDIR := obj
 BINDIR := bin
 
-SRCS := MainWindow.cs yuv3.cs AppState.cs DisplayYUVControl.cs YUVFileAccess.cs
+SRCS := MainWindow.cs yuv3.cs AppState.cs DisplayYUVControl.cs YUVFile.cs \
+	Constants.cs FileInterfacePanel.cs
 LOCATED_SRCS := $(SRCS:%=src/%)
 
-all: $(BINDIR)/yuv3.exe
+all: dirs $(BINDIR)/yuv3.exe
+
+dirs:
+	if [ ! -d $(BINDIR) ]; then mkdir $(BINDIR); fi
 
 
 $(BINDIR)/yuv3.exe: $(LOCATED_SRCS)
