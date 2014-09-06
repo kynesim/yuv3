@@ -44,20 +44,24 @@ namespace yuv3
             mFileButton = new Button();
             mFileButton.Text = "None";
             mFileButton.Click += new EventHandler(OnFileOpen);
+            mFileButton.Anchor = AnchorStyles.Right;
+            this.Controls.Add(mFileButton, 1, 0);
 
             Label w = new Label(); 
             w.Text = "Width: ";
             w.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.Controls.Add(w, 0, 0);
+            this.Controls.Add(w, 0, 1);
             mWidthBox = new TextBox();
-            this.Controls.Add(mWidthBox, 1, 0);
+            this.Controls.Add(mWidthBox, 1, 1);
+            mWidthBox.Anchor = AnchorStyles.Right;
 
             Label h = new Label(); 
             h.Text = "Height: ";
             h.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.Controls.Add(w, 0, 1);
+            this.Controls.Add(w, 0, 2);
             mHeightBox = new TextBox();
-            this.Controls.Add(mHeightBox, 1, 1);
+            this.Controls.Add(mHeightBox, 1, 2);
+            mWidthBox.Anchor = AnchorStyles.Right;
 
 
         }
