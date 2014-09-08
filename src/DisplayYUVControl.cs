@@ -35,6 +35,18 @@ namespace yuv3
         void Render(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
+            int left_x = ClipRectangle.Left;
+            int nr_x = ClipRectangle.Width;
+
+            for (int y = ClipRectangle.Top; y < ClipRectangle.Bottom; ++y)
+            {
+                
+
+                
+            }
+
+
+
             g.FillRectangle(Brushes.Sienna, 10, 15, 100, 100);
         }
 

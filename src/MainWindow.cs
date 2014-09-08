@@ -29,6 +29,8 @@ namespace yuv3
             mAppState = inAppState;
             mAppState.SetMainWindow(this);
 
+            AutoScroll = true;
+
             TableLayoutPanel topFlow = new TableLayoutPanel();
             topFlow.Parent = this;
             topFlow.RowCount = 1;
@@ -52,10 +54,16 @@ namespace yuv3
 
 
             SplitContainer topSplit = new SplitContainer();
+            topSplit.Panel1.AutoScroll = true;
+            topSplit.Panel2.AutoScroll = true;
+
             topSplit.Orientation = Orientation.Vertical;
-            topSplit.Anchor = AnchorStyles.Left;
+            topSplit.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | 
+                AnchorStyles.Bottom;
+            topSplit.AutoSize = true;
 
             topFlow.Controls.Add(topSplit);
+            topFlow.AutoSize = true;
 
             TableLayoutPanel controlPanel = new TableLayoutPanel();
 
@@ -102,7 +110,8 @@ namespace yuv3
                 TableLayoutPanel mathPanel = new TableLayoutPanel();
                 mathPanel.AutoSize = true;
                 mathPanel.RowCount = 1;
-                mathPanel.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
+                mathPanel.Anchor = AnchorStyles.Top | 
+                    AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
 
                 CheckBox diffButton = new CheckBox();
                 diffButton.Appearance = Appearance.Button;
@@ -116,16 +125,20 @@ namespace yuv3
             topSplit.Panel1Collapsed = false;
             topSplit.Panel2Collapsed = false;
             topSplit.Panel1MinSize = 200;
-            topSplit.Panel2MinSize = 200;            
+            topSplit.Panel2MinSize = 200;          
             topSplit.Dock = DockStyle.Fill;
 
             mDisplay = new DisplayYUVControl(inAppState, null);
             mDisplay.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
             topSplit.Panel2.Controls.Add(mDisplay);
+
             mDisplay.BackColor = System.Drawing.Color.Blue;
 
             mStatus= new StatusBar();
             mStatus.Parent = this;
+
+            Height = 600;
+            Width = 1000;
 
             SetStatus("Idle", false);
 
