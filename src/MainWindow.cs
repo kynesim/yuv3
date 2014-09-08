@@ -66,14 +66,16 @@ namespace yuv3
 
             {
                 TableLayoutPanel paramPanel = new TableLayoutPanel();
-                paramPanel.RowCount = 1;
-                paramPanel.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
+                paramPanel.ColumnCount = 1;
+                paramPanel.RowCount = 4;
+                paramPanel.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top |
+                    AnchorStyles.Bottom;
 
                 mFiles = new FileInterfacePanel[Constants.kNumberOfChannels];
                 for (int i = 0; i < Constants.kNumberOfChannels; ++i)
                 {
                     mFiles[i] = new FileInterfacePanel(mAppState, i);
-                    paramPanel.Controls.Add(mFiles[i], 0, i);
+                    paramPanel.Controls.Add(mFiles[i]);
                 }
 
                 // Label w = new Label(); 
