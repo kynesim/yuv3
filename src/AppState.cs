@@ -16,9 +16,9 @@ namespace yuv3
             mW.SetStatus(in_status, withDialog);
         }
 
-        public void UserSet(int which, int w, int h)
+        public void UserSet(int which, int w, int h, YUVFileFormat fmt)
         {
-            // mFiles[which].Set(w,h);
+            mFiles[which].Set(w,h, fmt);
         }
 
         public void SetMainWindow(MainWindow in_mw) 
@@ -26,10 +26,12 @@ namespace yuv3
             mW = in_mw;
         }
 
-        public void LoadFile(int which, string in_name, int w, int h)
+        public void LoadFile(int which, string in_name, int w, int h, YUVFileFormat fmt)
         {
-            // mYUVFile.LoadFile(in_name);
-            //m SetStatus("Loaded " + in_name);
+            mFiles[which].CloseFile();
+            mFiles[which].Set(w,h, fmt);
+            mFiles[which].LoadFile(in_name);
+            mW.SetStatus("Loaded " + in_name, false);
         }
 
         public AppState()

@@ -12,7 +12,8 @@ namespace yuv3
     {
         YUV420,
         YUYV,
-        YVYU
+        YVYU,
+        Unknown
     }
 
     public class YUVFile
@@ -33,6 +34,11 @@ namespace yuv3
             }
         }
 
+
+        public void CloseFile()
+        {
+            mLoaded = false;
+        }
 
         public void LoadFile(string in_file)
         {
@@ -56,14 +62,11 @@ namespace yuv3
             mFileName = in_file;
         }
 
-        public void UserSetWidth(int w) 
+        public void Set(int w, int h, YUVFileFormat fmt)
         {
             mWidth = w;
-        }
-        
-        public void UserSetHeight(int h)
-        {
             mHeight = h;
+            mFormat = fmt;
         }
         
         public YUVFile()

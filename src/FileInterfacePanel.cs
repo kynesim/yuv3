@@ -13,7 +13,9 @@ namespace yuv3
         TextBox mDimBox;
         Button mFileButton;
         AppState mAppState;
+        ComboBox mFormat;
         int mW, mH;
+        YUVFileFormat mF;
 
         public int FileWidth
         {
@@ -31,6 +33,14 @@ namespace yuv3
             }
         }
         
+        public YUVFileFormat Format
+        {
+            get
+            {
+                return mF;
+            }
+        }
+
 
         public FileInterfacePanel(AppState inAppState, int which) 
         {
@@ -104,13 +114,43 @@ namespace yuv3
                                            Constants.kDefaultHeight);
             mW = Constants.kDefaultWidth;
             mH = Constants.kDefaultHeight;
+            mF = Constants.kDefaultFormat;
             inner.Controls.Add(mDimBox);
             mDimBox.Anchor = AnchorStyles.Right | AnchorStyles.Left;
             mDimBox.TextChanged += new EventHandler(OnDimChanged);
             mDimBox.KeyDown += new KeyEventHandler(OnDimKeyDown);
+
+            f = new Label();
+            f.Text = "Format: ";
+            f.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            inner.Controls.Add(f);
+
+            mFormat = new ComboBox();
+            mFormat.Text = "YUV420";
+            string[] formats = new string[]{ "YUV420", "YUYV", "YVYU", "None" };
+            mFormat.Items.AddRange(formats);
+            mFormat.SelectedValueChanged += new System.EventHandler(OnFormatChanged);
+            inner.Controls.Add(mFormat);
+
             this.Controls.Add(inner);
         }
 
+
+        public void SetNewFormat(YUVFileFormat ff)
+        {
+            switch (ff)
+            {
+            case YUVFileFormat.YUV420: mFormat.SelectedIndex = 0;
+                break;
+            case YUVFileFormat.YUYV: mFormat.SelectedIndex = 1;
+                break;
+            case YUVFileFormat.YVYU: mFormat.SelectedIndex = 2;
+                break;
+            default:
+                mFormat.SelectedIndex = 3;
+                break;
+            }
+        }
 
         public void SetNewDimensions(int w, int h)
         {
@@ -119,6 +159,31 @@ namespace yuv3
                                            w, h);
             mDimBox.ForeColor = System.Drawing.Color.Black;
         }
+
+
+        public void OnFormatChanged(Object sender, EventArgs e)
+        {
+            YUVFileFormat result = YUVFileFormat.Unknown;
+
+            switch (mFormat.SelectedIndex)
+            {
+            case 0: 
+                result = YUVFileFormat.YUV420;
+                break;
+            case 1:
+                result = YUVFileFormat.YUYV;
+                break;
+            case 2:
+                result = YUVFileFormat.YVYU;
+                break;
+            default:
+                // Hmm .. 
+                break;
+            }
+            mF = result;
+            mAppState.UserSet(mWhich, mW, mH, result);
+        }
+
 
         void OnDimChanged(Object sender, EventArgs e)
         {
@@ -152,7 +217,7 @@ namespace yuv3
                     mW = new_width;
                     mH = new_height;
                     mDimBox.ForeColor = System.Drawing.Color.Black;
-                    mAppState.UserSet(mWhich, new_width, new_height);
+                    mAppState.UserSet(mWhich, new_width, new_height, mF);
                 }
                 else
                 {
@@ -169,7 +234,7 @@ namespace yuv3
             {
                 try
                 {
-                    mAppState.LoadFile(mWhich, ofDlg.FileName, FileWidth, FileHeight);
+                    mAppState.LoadFile(mWhich, ofDlg.FileName, FileWidth, FileHeight, Format);
                     mFileButton.Text = ofDlg.FileName;
                 }
                 catch (Exception x)
