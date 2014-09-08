@@ -3,21 +3,23 @@
 
 using System;
 using System.Windows.Forms;
+using System.Text.RegularExpressions;
 
 namespace yuv3
 {
     public class FileInterfacePanel : TableLayoutPanel
     {
         int mWhich;
-        TextBox mWidthBox, mHeightBox;
+        TextBox mDimBox;
         Button mFileButton;
         AppState mAppState;
+        int mW, mH;
 
         public int FileWidth
         {
             get
             {
-                return int.Parse(mWidthBox.Text);
+                return mW;
             }
         }
 
@@ -25,7 +27,7 @@ namespace yuv3
         {
             get
             {
-                return int.Parse(mHeightBox.Text);
+                return mH;
             }
         }
         
@@ -93,47 +95,69 @@ namespace yuv3
             inner.Controls.Add(mFileButton);
 
             Label w = new Label(); 
-            w.Text = "Width: ";
+            w.Text = "Dimensions: ";
             w.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             inner.Controls.Add(w);
-            mWidthBox = new TextBox();
-            inner.Controls.Add(mWidthBox);
-            mWidthBox.Anchor = AnchorStyles.Right | AnchorStyles.Left;
-
-            Label h = new Label(); 
-            h.Text = "Height: ";
-            h.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            inner.Controls.Add(h);
-            mHeightBox = new TextBox();
-            inner.Controls.Add(mHeightBox);
-            mHeightBox.Anchor = AnchorStyles.Right | AnchorStyles.Left;
+            mDimBox = new TextBox();
+            mDimBox.Text = string.Format("{0} x {1}", 
+                                           Constants.kDefaultWidth,
+                                           Constants.kDefaultHeight);
+            mW = Constants.kDefaultWidth;
+            mH = Constants.kDefaultHeight;
+            inner.Controls.Add(mDimBox);
+            mDimBox.Anchor = AnchorStyles.Right | AnchorStyles.Left;
+            mDimBox.TextChanged += new EventHandler(OnDimChanged);
+            mDimBox.KeyDown += new KeyEventHandler(OnDimKeyDown);
             this.Controls.Add(inner);
-             
-
         }
 
 
         public void SetNewDimensions(int w, int h)
         {
-            mWidthBox.Text = w.ToString();
-            mHeightBox.Text = h.ToString();
+            mW = w; mH = h;
+            mDimBox.Text = string.Format("{0} x {1}", 
+                                           w, h);
+            mDimBox.ForeColor = System.Drawing.Color.Black;
         }
 
-        void OnWidthChanged(Object sender, EventArgs e)
+        void OnDimChanged(Object sender, EventArgs e)
+        {
+            // Indicate a change.
+            mDimBox.ForeColor = System.Drawing.Color.Blue;
+        }
+
+        void OnDimKeyDown(Object sender, KeyEventArgs e)
         {
             int new_width;
-            if (int.TryParse(mWidthBox.Text, out new_width))
-            {
-                mAppState.UserSetWidth(mWhich, new_width);
-            }
-        }
-
-        void OnHeightChanged(Object sender, EventArgs e)
-        {
             int new_height;
-            if (int.TryParse(mHeightBox.Text, out new_height))
+
+            if (e.KeyCode != Keys.Enter)
             {
-                mAppState.UserSetHeight(mWhich, new_height);
+                // No-one cares.
+                return;
+            }
+
+            /* Find the 'x' */
+            string the_text = mDimBox.Text;
+            int x = the_text.IndexOf("x");
+            if (x >= 0)
+            {
+                string left = the_text.Substring(0, x-1);
+                string right = the_text.Substring(x+1);
+                left = Regex.Replace(left, @"\s", "");
+                right = Regex.Replace(right, @"\s", "");
+                if (int.TryParse(left, out new_width) && 
+                    int.TryParse(right, out new_height))
+                {
+                    mW = new_width;
+                    mH = new_height;
+                    mDimBox.ForeColor = System.Drawing.Color.Black;
+                    mAppState.UserSet(mWhich, new_width, new_height);
+                }
+                else
+                {
+                    mDimBox.ForeColor = System.Drawing.Color.Gray;
+                }
             }
         }
 
@@ -145,7 +169,7 @@ namespace yuv3
             {
                 try
                 {
-                    //mAppState.LoadFile(ofDlg.FileName, FileWidth, FileHeight);
+                    mAppState.LoadFile(mWhich, ofDlg.FileName, FileWidth, FileHeight);
                     mFileButton.Text = ofDlg.FileName;
                 }
                 catch (Exception x)

@@ -16,14 +16,9 @@ namespace yuv3
             mW.SetStatus(in_status, withDialog);
         }
 
-        public void UserSetWidth(int which, int w)
+        public void UserSet(int which, int w, int h)
         {
-            // mFiles[which].SetWidth(h);
-        }
-        
-        public void UserSetHeight(int which, int h)
-        {
-            // mFiles[which].SetHeight(h);
+            // mFiles[which].Set(w,h);
         }
 
         public void SetMainWindow(MainWindow in_mw) 

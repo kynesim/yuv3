@@ -63,11 +63,12 @@ namespace yuv3
                 AnchorStyles.Bottom;
             controlPanel.Dock = DockStyle.Fill;
             controlPanel.RowCount = 1;
+            controlPanel.AutoSize = true;
 
             {
                 TableLayoutPanel paramPanel = new TableLayoutPanel();
                 paramPanel.ColumnCount = 1;
-                paramPanel.RowCount = 4;
+                paramPanel.AutoSize = true;
                 paramPanel.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top |
                     AnchorStyles.Bottom;
 
@@ -96,6 +97,18 @@ namespace yuv3
 
                     
                 controlPanel.Controls.Add(paramPanel);
+            }
+            {
+                TableLayoutPanel mathPanel = new TableLayoutPanel();
+                mathPanel.AutoSize = true;
+                mathPanel.RowCount = 1;
+                mathPanel.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
+
+                CheckBox diffButton = new CheckBox();
+                diffButton.Appearance = Appearance.Button;
+                diffButton.Text = "Diff";
+                mathPanel.Controls.Add(diffButton);
+                controlPanel.Controls.Add(mathPanel);
             }
 
             topSplit.BorderStyle = BorderStyle.FixedSingle;

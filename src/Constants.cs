@@ -6,6 +6,9 @@ namespace yuv3
     public class Constants
     {        
         public const int kNumberOfChannels = 4;
+
+        public const int kDefaultWidth = 640;
+        public const int kDefaultHeight = 480;
     }
 }
 
