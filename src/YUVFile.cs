@@ -43,9 +43,9 @@ namespace yuv3
                 switch (mFormat)
                 {
                 case YUVFileFormat.YUV420I:
-                    return (mWidth * mHeight) * (3/2);
+                    return (mWidth * mHeight * 3) / 2;
                 case YUVFileFormat.YUV420P:
-                    return (mWidth * mHeight) * (3/2);
+                    return (mWidth * mHeight * 3) / 2;
                 case YUVFileFormat.YUYV:
                     return (mWidth * mHeight * 2);
                 case YUVFileFormat.YVYU:
@@ -62,6 +62,155 @@ namespace yuv3
             mLoaded = false;
         }
 
+        public unsafe void YUVToRGB(byte * result, int idx, int alpha,
+                             int y, int u, int v)
+        {            
+            result[0] = (byte)alpha;
+            // R
+            result[1] = (byte)(1.164*(y-16) + 1.596*(v-128));
+            // G
+            result[2] = (byte)(1.164*(y-16) - 0.813*(v-128) - 0.391*(u-128));
+            // B
+            result[3] = (byte)(1.164*(y-16) + 2.018*(u - 128.0));
+            // *result = (alpha << 24) | (r << 16) | (g << 8) | b;
+
+            //result[0] = 0x80;
+            //result[1] = 0x60;
+            //result[2] = 0xFF;
+            //result[3] = 0x20;
+        }
+      
+        unsafe bool Convert420I(System.Drawing.Imaging.BitmapData ioData, int alpha)
+            {                    
+                int yptr = 0;
+                int rgbptr = 0;
+                int uptr = (mWidth * mHeight);
+                int vptr = uptr + 1;
+                int old_uptr = uptr;
+                int old_vptr = vptr;
+                byte *out_line = (byte *)ioData.Scan0.ToPointer();
+                byte *outp = out_line;
+                /* YUV420 interleaved */
+                for (int j = 0; j < mHeight; ++j, out_line += ioData.Stride)
+                {
+                    //Console.WriteLine(String.Format("Line {0} pb {1}", j, mPictureBytes.Length));
+                    old_uptr = uptr;
+                    old_vptr = vptr;
+                    outp = out_line;
+                    for (int i = 0; i < mWidth; i += 2, outp += 8)
+                    {
+                        //  Console.WriteLine(String.Format("ptr {0}, {1}, {2} -> {3} @ {4}, {5}\n",
+                        //                                 yptr, uptr, vptr, 
+                        //                                mPictureBytes.Length,
+                        //                               i,j));
+                        YUVToRGB(outp, rgbptr, alpha, 
+                                 mPictureBytes[yptr], 
+                                 mPictureBytes[uptr],
+                                 mPictureBytes[vptr]);
+                        
+                        YUVToRGB(outp+4, rgbptr + 4, alpha,
+                                 mPictureBytes[yptr + 1], 
+                                     mPictureBytes[uptr],
+                                 mPictureBytes[vptr]);
+                        
+                        ++uptr;
+                        ++vptr;
+                    }
+                    if ((j&1) == 0)
+                    {
+                        uptr = old_uptr;
+                        vptr = old_vptr;
+                    }
+                }
+                return true;
+            }
+
+
+         unsafe bool Convert420P(System.Drawing.Imaging.BitmapData ioData, int alpha)
+            {                    
+                int yptr = 0;
+                int rgbptr = 0;
+                int uptr = (mWidth * mHeight);
+                int vptr = uptr + ((mWidth/2) * (mHeight/2));
+                int old_uptr = uptr;
+                int old_vptr = vptr;
+                byte *out_line = (byte *)ioData.Scan0.ToPointer();
+                byte *outp = out_line;
+                /* YUV420 interleaved */
+                for (int j = 0; j < mHeight; ++j, out_line += ioData.Stride)
+                {
+                    //Console.WriteLine(String.Format("Line {0} pb {1}", j, mPictureBytes.Length));
+                    old_uptr = uptr;
+                    old_vptr = vptr;
+                    outp = out_line;
+                    for (int i = 0; i < mWidth; i += 2, outp += 8)
+                    {
+                        //Console.WriteLine(String.Format("ptr {0}, {1}, {2} -> {3} @ {4}, {5}\n",
+                         //                                yptr, uptr, vptr, 
+                          //                              mPictureBytes.Length,
+                           //                            i,j));
+                        YUVToRGB(outp, rgbptr, alpha, 
+                                 mPictureBytes[yptr], 
+                                 mPictureBytes[uptr],
+                                 mPictureBytes[vptr]);
+                        
+                        YUVToRGB(outp+4, rgbptr + 4, alpha,
+                                 mPictureBytes[yptr + 1], 
+                                     mPictureBytes[uptr],
+                                 mPictureBytes[vptr]);
+                        
+                        ++uptr;
+                        ++vptr;
+                    }
+                    if ((j&1) == 0)
+                    {
+                        uptr = old_uptr;
+                        vptr = old_vptr;
+                    }
+                }
+                return true;
+            }
+
+        public unsafe bool ToRGB32(System.Drawing.Imaging.BitmapData ioData, int alpha)
+            {
+                try
+                {
+                    EnsureData();
+                }
+                catch (Exception e)
+                {
+                    return false;
+                }
+                
+                switch (mFormat)
+                {
+                case YUVFileFormat.YUV420I:
+                    return Convert420I(ioData, alpha);
+                case YUVFileFormat.YUV420P:
+                    return Convert420P(ioData, alpha);
+                default:
+                    break;
+                }
+                return false;
+            }
+
+        public void EnsureData()
+        {
+            if (mPictureBytes != null &&
+                mPictureBytes.Length >= BytesPerPicture)
+            {
+                return;
+            }
+            // Otherwise .. 
+            mPictureBytes = new byte[this.BytesPerPicture];
+            mReader.Read(mPictureBytes, 0, this.BytesPerPicture);                    
+        }
+
+        public void ClearData()
+        {
+            mPictureBytes = null;
+        }
+
         public void LoadFile(string in_file)
         {
             if (in_file != null)
@@ -71,12 +220,11 @@ namespace yuv3
                 BinaryReader new_reader = 
                     new BinaryReader(result_stream);
 
+                // Remove any old data.
+                ClearData();
 
-                /* Now, read the image data and cache it as Y,U,V */
                 try
                 {
-                    mPictureBytes = new byte[this.BytesPerPicture];
-                    new_reader.Read(mPictureBytes, 0, this.BytesPerPicture);                    
                     mStream = result_stream;
                     mReader = new_reader;
                     mLoaded = true;
@@ -101,6 +249,7 @@ namespace yuv3
             mWidth = w;
             mHeight = h;
             mFormat = fmt;
+            // No need to ClearData() - we could reuse it.
         }
         
         public YUVFile()

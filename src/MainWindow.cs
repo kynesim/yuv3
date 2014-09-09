@@ -15,6 +15,14 @@ namespace yuv3
 
         public DisplayYUVControl mDisplay;
         
+        public DisplayYUVControl Display
+        {
+            get
+            {
+                return mDisplay;
+            }
+        }
+
         public void SetStatus(String s, bool andDialog)
         {
             mStatus.Text = s;
@@ -28,6 +36,8 @@ namespace yuv3
         {
             mAppState = inAppState;
             mAppState.SetMainWindow(this);
+            mDisplay = new DisplayYUVControl(inAppState);
+
 
             AutoScroll = true;
 
@@ -129,7 +139,6 @@ namespace yuv3
             topSplit.Panel2MinSize = 200;          
             topSplit.Dock = DockStyle.Fill;
 
-            mDisplay = new DisplayYUVControl(inAppState, null);
             mDisplay.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom 
                 | AnchorStyles.Right;
             mDisplay.AutoSize = true;

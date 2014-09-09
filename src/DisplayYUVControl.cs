@@ -3,6 +3,7 @@
 
 using System;
 using System.Windows.Forms;
+using System.Drawing.Imaging;
 using System.Drawing;
 
 namespace yuv3
@@ -10,38 +11,54 @@ namespace yuv3
     public class DisplayYUVControl : Control
     {
         public AppState mAppState;
-        public YUVFile mFile;
-        public Image mImage;
+        public Bitmap[] mImage;
+        public Bitmap mMath;
 
-        public DisplayYUVControl(AppState in_as, YUVFile cs)
+        public DisplayYUVControl(AppState in_as)
         {
             mAppState = in_as;
-            mFile = cs;
+            mImage = new Bitmap[Constants.kNumberOfChannels];
+            mMath = null;
             Paint += new PaintEventHandler(Render);
         }
 
-        public void SetSize()
+        public void UpdateLayer(int layer, YUVFile aFile, int alpha)
         {
-            if (mFile != null && mFile.Loaded)
+            /* Update mImage[layer] */
+            bool ok;
+            Bitmap myBitmap = new Bitmap(aFile.mWidth, aFile.mHeight, PixelFormat.Format32bppArgb);
+            System.Drawing.Imaging.BitmapData someData =
+                myBitmap.LockBits(new Rectangle(0, 0, myBitmap.Width, myBitmap.Height),
+                                  System.Drawing.Imaging.ImageLockMode.ReadWrite,
+                                  myBitmap.PixelFormat);
+            ok = aFile.ToRGB32(someData, alpha);
+            myBitmap.UnlockBits(someData);
+            if (ok)
             {
-                Size = new System.Drawing.Size(mFile.mWidth, 
-                                               mFile.mHeight);
+                mImage[layer] = myBitmap;
             }
             else
             {
-                Size = new System.Drawing.Size(320, 240);
+                mImage[layer]= null;
             }
+            this.Refresh();
         }
 
         void Render(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
             Rectangle everywhere = new Rectangle(0, 0, this.Size.Width, this.Size.Height);
-            if (mImage != null)
+            bool any = false;
+            for (int i = 0; i < Constants.kNumberOfChannels; ++i)
             {
-                g.DrawImage(mImage, everywhere);
+                if (mImage[i] != null)
+                {
+                    g.DrawImage(mImage[i], everywhere);
+                    any = true;
+                }
             }
-            else
+
+            if (!any)
             {
                 Brush a_brush = new System.Drawing.SolidBrush(Color.FromArgb(50, Color.Gray));
                 Pen blk_pen = new Pen(new System.Drawing.SolidBrush(Color.FromArgb(50, Color.Black)));

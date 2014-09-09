@@ -18,7 +18,11 @@ namespace yuv3
 
         public void UserSet(int which, int w, int h, YUVFileFormat fmt)
         {
-            mFiles[which].Set(w,h, fmt);
+            if (mFiles[which] != null)
+            {
+                mFiles[which].Set(w,h, fmt);
+                mW.Display.UpdateLayer(which, mFiles[which], 128);
+            }
         }
 
         public void SetMainWindow(MainWindow in_mw) 
@@ -32,6 +36,8 @@ namespace yuv3
             mFiles[which].Set(w,h, fmt);
             mFiles[which].LoadFile(in_name);
             mW.SetStatus("Loaded " + in_name, false);
+            /* Now reconstruct the display */
+            mW.Display.UpdateLayer(which, mFiles[which], 128);
         }
 
         public AppState()

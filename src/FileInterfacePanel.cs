@@ -126,10 +126,11 @@ namespace yuv3
             inner.Controls.Add(f);
 
             mFormat = new ComboBox();
-            mFormat.Text = "YUV420";
             string[] formats = new string[]{ "YUV420I", "YUV420P", "YUYV", "YVYU", "None" };
             mFormat.Items.AddRange(formats);
             mFormat.SelectedValueChanged += new System.EventHandler(OnFormatChanged);
+            mFormat.SelectedIndex = 0;
+            mFormat.DropDownStyle = ComboBoxStyle.DropDownList;
             inner.Controls.Add(mFormat);
 
             this.Controls.Add(inner);
