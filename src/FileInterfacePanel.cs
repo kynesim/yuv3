@@ -127,7 +127,7 @@ namespace yuv3
 
             mFormat = new ComboBox();
             mFormat.Text = "YUV420";
-            string[] formats = new string[]{ "YUV420", "YUYV", "YVYU", "None" };
+            string[] formats = new string[]{ "YUV420I", "YUV420P", "YUYV", "YVYU", "None" };
             mFormat.Items.AddRange(formats);
             mFormat.SelectedValueChanged += new System.EventHandler(OnFormatChanged);
             inner.Controls.Add(mFormat);
@@ -140,14 +140,16 @@ namespace yuv3
         {
             switch (ff)
             {
-            case YUVFileFormat.YUV420: mFormat.SelectedIndex = 0;
+            case YUVFileFormat.YUV420I: mFormat.SelectedIndex = 0;
                 break;
-            case YUVFileFormat.YUYV: mFormat.SelectedIndex = 1;
+            case YUVFileFormat.YUV420P: mFormat.SelectedIndex = 1;
                 break;
-            case YUVFileFormat.YVYU: mFormat.SelectedIndex = 2;
+            case YUVFileFormat.YUYV: mFormat.SelectedIndex = 2;
+                break;
+            case YUVFileFormat.YVYU: mFormat.SelectedIndex = 3;
                 break;
             default:
-                mFormat.SelectedIndex = 3;
+                mFormat.SelectedIndex = 4;
                 break;
             }
         }
@@ -168,12 +170,15 @@ namespace yuv3
             switch (mFormat.SelectedIndex)
             {
             case 0: 
-                result = YUVFileFormat.YUV420;
+                result = YUVFileFormat.YUV420I;
                 break;
             case 1:
-                result = YUVFileFormat.YUYV;
+                result = YUVFileFormat.YUV420P;
                 break;
             case 2:
+                result = YUVFileFormat.YUYV;
+                break;
+            case 3:
                 result = YUVFileFormat.YVYU;
                 break;
             default:

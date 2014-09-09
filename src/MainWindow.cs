@@ -42,9 +42,9 @@ namespace yuv3
             mMenu.Items.Add(file);
 
             //ToolStripMenuItem f_open = new ToolStripMenuItem("&Open..");
-           // file.DropDownItems.Add(f_open);
+            // file.DropDownItems.Add(f_open);
             //f_open.DropDownItemClicked += new ToolStripItemClickedEventHandler(OnFileOpen);
-           // f_open.Click += new System.EventHandler(OnFileOpen);
+            // f_open.Click += new System.EventHandler(OnFileOpen);
             //f_open.ShortcutKeys = Keys.Control | Keys.O;
             
             file.DropDownItems.Add(new ToolStripMenuItem("E&xit", null,
@@ -118,6 +118,7 @@ namespace yuv3
                 diffButton.Text = "Diff";
                 mathPanel.Controls.Add(diffButton);
                 controlPanel.Controls.Add(mathPanel);
+                controlPanel.Dock = DockStyle.Fill;
             }
 
             topSplit.BorderStyle = BorderStyle.FixedSingle;
@@ -129,10 +130,14 @@ namespace yuv3
             topSplit.Dock = DockStyle.Fill;
 
             mDisplay = new DisplayYUVControl(inAppState, null);
-            mDisplay.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            mDisplay.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom 
+                | AnchorStyles.Right;
+            mDisplay.AutoSize = true;
+            mDisplay.Dock = DockStyle.Fill;
             topSplit.Panel2.Controls.Add(mDisplay);
+            topSplit.Panel2.AutoSize = true;
 
-            mDisplay.BackColor = System.Drawing.Color.Blue;
+//             mDisplay.BackColor = System.Drawing.Color.Blue;
 
             mStatus= new StatusBar();
             mStatus.Parent = this;

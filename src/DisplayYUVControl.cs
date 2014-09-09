@@ -11,6 +11,7 @@ namespace yuv3
     {
         public AppState mAppState;
         public YUVFile mFile;
+        public Image mImage;
 
         public DisplayYUVControl(AppState in_as, YUVFile cs)
         {
@@ -35,19 +36,21 @@ namespace yuv3
         void Render(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            int left_x = ClipRectangle.Left;
-            int nr_x = ClipRectangle.Width;
-
-            for (int y = ClipRectangle.Top; y < ClipRectangle.Bottom; ++y)
+            Rectangle everywhere = new Rectangle(0, 0, this.Size.Width, this.Size.Height);
+            if (mImage != null)
             {
-                
-
-                
+                g.DrawImage(mImage, everywhere);
             }
-
-
-
-            g.FillRectangle(Brushes.Sienna, 10, 15, 100, 100);
+            else
+            {
+                Brush a_brush = new System.Drawing.SolidBrush(Color.FromArgb(50, Color.Gray));
+                Pen blk_pen = new Pen(new System.Drawing.SolidBrush(Color.FromArgb(50, Color.Black)));
+                g.FillRectangle(a_brush, everywhere);
+                g.DrawLine( blk_pen, everywhere.Left, everywhere.Bottom,
+                            everywhere.Right, everywhere.Top);
+                g.DrawLine( blk_pen, everywhere.Right, everywhere.Bottom,
+                            everywhere.Left, everywhere.Top );
+            }
         }
 
     }
