@@ -238,9 +238,12 @@ namespace yuv3
 
         void OnFrameDown(Object sender, EventArgs e)
         {
-            --mFrame;
-            mFrameBox.Text = mFrame.ToString();
-            mAppState.UserSet(mWhich, mW, mH, mFrame, mF);            
+            if (mFrame > 0)
+            {
+                --mFrame;
+                mFrameBox.Text = mFrame.ToString();
+                mAppState.UserSet(mWhich, mW, mH, mFrame, mF);            
+            }
         }
 
         void OnFrameChanged(Object sender, EventArgs e)

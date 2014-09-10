@@ -35,6 +35,7 @@ namespace yuv3
             myBitmap.UnlockBits(someData);
             if (ok)
             {
+                Console.WriteLine("Data!\n");
                 mImage[layer] = myBitmap;
             }
             else
@@ -49,10 +50,15 @@ namespace yuv3
             Graphics g = e.Graphics;
             Rectangle everywhere = new Rectangle(0, 0, this.Size.Width, this.Size.Height);
             bool any = false;
+
+            // Speed up scaling -we do a lot of it.
+            // g.InterpolationMode = InterpolationMode.NearestNeighbour;
+
             for (int i = 0; i < Constants.kNumberOfChannels; ++i)
             {
                 if (mImage[i] != null)
                 {
+                    Console.WriteLine(String.Format("Paint {0}", i));
                     g.DrawImage(mImage[i], everywhere);
                     any = true;
                 }

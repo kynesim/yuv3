@@ -44,7 +44,7 @@ namespace yuv3
             Console.WriteLine("D");
             mW.SetStatus("Loaded " + in_name, false);
             /* Now reconstruct the display */
-            mW.Display.UpdateLayer(which, mFiles[which], 128);
+            mW.Display.UpdateLayer(which, mFiles[which], 255);
         }
 
         public void ReplaceNotifier(IStatusNotifier isn)

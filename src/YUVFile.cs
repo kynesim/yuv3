@@ -5,6 +5,7 @@ using System;
 using System.Windows.Forms;
 using System.Drawing;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace yuv3
 {
@@ -173,22 +174,23 @@ namespace yuv3
 
          unsafe bool Convert420P(System.Drawing.Imaging.BitmapData ioData, int alpha)
             {                    
-                int yptr = 0;
-                int rgbptr = 0;
-                int uptr = (mWidth * mHeight);
-                int vptr = uptr + ((mWidth/2) * (mHeight/2));
-                int old_uptr = uptr;
-                int old_vptr = vptr;
+                int base_uptr = (mWidth * mHeight);
+                int base_vptr = base_uptr + ((mWidth/2) * (mHeight/2));
+                int uvline = (mWidth/2);
                 byte *out_line = (byte *)ioData.Scan0.ToPointer();
-                byte *outp = out_line;
+                int stride = ioData.Stride;
+
                 /* YUV420 interleaved */
-                for (int j = 0; j < mHeight; ++j, out_line += ioData.Stride)
+                Parallel.For(0, mHeight, (j) => 
                 {
                     //Console.WriteLine(String.Format("Line {0} pb {1}", j, mPictureBytes.Length));
-                    old_uptr = uptr;
-                    old_vptr = vptr;
-                    outp = out_line;
-                    for (int i = 0; i < mWidth; i += 2, outp += 8, yptr += 2)
+                    int uptr, vptr, yptr;
+                    byte *outp;
+                    uptr = base_uptr + ((j/2) * uvline);
+                    vptr = base_vptr + ((j/2) * uvline);
+                    yptr = mWidth *j;
+                    outp = out_line + (j*stride);
+                    for (int i = 0; i < mWidth; i += 2, outp += 8, yptr += 2, ++uptr, ++vptr)
                     {
                         //Console.WriteLine(String.Format("ptr {0}, {1}, {2} -> {3} @ {4}, {5}\n",
                          //                                yptr, uptr, vptr, 
@@ -205,15 +207,8 @@ namespace yuv3
                                  mPictureBytes[uptr], 
                                  mPictureBytes[vptr]);
                         
-                        ++uptr;
-                        ++vptr;
                     }
-                    if ((j&1) == 0)
-                    {
-                        uptr = old_uptr;
-                        vptr = old_vptr;
-                    }
-                }
+                });
                 return true;
             }
 
