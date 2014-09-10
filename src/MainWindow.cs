@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace yuv3
 {
-    public class MainWindow :  Form
+    public class MainWindow :  Form, IStatusNotifier
     {
         AppState mAppState;
         StatusBar mStatus;
@@ -21,6 +21,16 @@ namespace yuv3
             {
                 return mDisplay;
             }
+        }
+
+        public void Warning(String s, bool dialog)
+        {
+            SetStatus(s, dialog);
+        }
+
+        public void Log(String s)
+        {
+            SetStatus(s, false);
         }
 
         public void SetStatus(String s, bool andDialog)
@@ -154,6 +164,7 @@ namespace yuv3
             Height = 600;
             Width = 1000;
 
+            mAppState.ReplaceNotifier(this);
             SetStatus("Idle", false);
 
             Text = "YUV3";

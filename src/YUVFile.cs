@@ -16,23 +16,34 @@ namespace yuv3
         YVYU,
         Unknown
     }
-
+    
     public class YUVFile
     {
         public string mFileName;
         public int mWidth;
         public int mHeight;
+        public int mFrame;
         public YUVFileFormat mFormat;
         BinaryReader mReader;
         FileStream mStream;
         bool mLoaded;
         byte[] mPictureBytes;
+        int mPictureOffset;
+        IStatusNotifier mNotifier;
 
         public bool Loaded
         {
             get 
             {
                 return mLoaded;
+            }
+        }
+
+        public int FileOffsetOfPicture
+        {
+            get
+            {
+                return mFrame * BytesPerPicture;
             }
         }
 
@@ -173,14 +184,11 @@ namespace yuv3
 
         public unsafe bool ToRGB32(System.Drawing.Imaging.BitmapData ioData, int alpha)
             {
-                try
-                {
-                    EnsureData();
-                }
-                catch (Exception e)
+                if (!EnsureData())
                 {
                     return false;
                 }
+
                 
                 switch (mFormat)
                 {
@@ -194,16 +202,39 @@ namespace yuv3
                 return false;
             }
 
-        public void EnsureData()
+        public bool EnsureData()
         {
-            if (mPictureBytes != null &&
-                mPictureBytes.Length >= BytesPerPicture)
+            if (FileOffsetOfPicture < 0)
             {
-                return;
+                ClearData();
+                return false;
             }
-            // Otherwise .. 
-            mPictureBytes = new byte[this.BytesPerPicture];
-            mReader.Read(mPictureBytes, 0, this.BytesPerPicture);                    
+
+            if (mPictureBytes == null ||
+                mPictureOffset != FileOffsetOfPicture ||
+                mPictureBytes.Length < BytesPerPicture)
+            {
+                try
+                {
+                    mPictureBytes = new byte[BytesPerPicture];
+                    mStream.Seek(FileOffsetOfPicture, SeekOrigin.Begin);
+                    mReader.Read(mPictureBytes, 
+                                 0, BytesPerPicture);
+                }
+                catch (Exception e)
+                {
+                    mPictureBytes= null;
+                    mNotifier.Warning(String.Format("Cannot read image data - {0}", e.ToString()),
+                                      false);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public bool HasData()
+        {
+            return mPictureBytes != null;
         }
 
         public void ClearData()
@@ -231,6 +262,8 @@ namespace yuv3
                 }
                 catch (Exception e)
                 {
+                    mNotifier.Warning(String.Format("Cannot open {0} - {1}",
+                                                    in_file, e), false);
                     result_stream.Close();
                     mLoaded = false;
                 }
@@ -244,20 +277,25 @@ namespace yuv3
             mFileName = in_file;
         }
 
-        public void Set(int w, int h, YUVFileFormat fmt)
+        public void Set(int w, int h, int frame, YUVFileFormat fmt)
         {
             mWidth = w;
             mHeight = h;
             mFormat = fmt;
+            mFrame = frame;
             // No need to ClearData() - we could reuse it.
         }
         
-        public YUVFile()
+        public void ReplaceNotifier(IStatusNotifier inNotifier)
         {
-            mLoaded = false;
+            mNotifier = inNotifier;
         }
 
-
+        public YUVFile(IStatusNotifier inNotifier)
+        {
+            mLoaded = false;
+            mNotifier = inNotifier;
+        }
     }
 }
 

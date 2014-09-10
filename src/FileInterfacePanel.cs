@@ -11,10 +11,11 @@ namespace yuv3
     {
         int mWhich;
         TextBox mDimBox;
+        TextBox mFrameBox;
         Button mFileButton;
         AppState mAppState;
         ComboBox mFormat;
-        int mW, mH;
+        int mW, mH, mFrame;
         YUVFileFormat mF;
 
         public int FileWidth
@@ -41,6 +42,13 @@ namespace yuv3
             }
         }
 
+        public int Frame
+        {
+            get
+            {
+                return mFrame;
+            }
+        }
 
         public FileInterfacePanel(AppState inAppState, int which) 
         {
@@ -50,6 +58,7 @@ namespace yuv3
             this.AutoSize = true;
             this.BackColor = System.Drawing.Color.Red;
             this.mWhich = which;
+            this.mFrame = 0;
             this.mAppState = inAppState;
 
             TableLayoutPanel title = new TableLayoutPanel();
@@ -83,8 +92,12 @@ namespace yuv3
             Button down = new Button();
             down.Text = "Down";
             buttons.Controls.Add(down);
+
+
             title.Controls.Add(buttons);
             
+            
+
             this.Controls.Add(title);
             
             TableLayoutPanel inner = new TableLayoutPanel();
@@ -132,6 +145,32 @@ namespace yuv3
             mFormat.SelectedIndex = 0;
             mFormat.DropDownStyle = ComboBoxStyle.DropDownList;
             inner.Controls.Add(mFormat);
+
+            f = new Label();
+            f.Text = "Frame: ";
+            f.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            inner.Controls.Add(f);
+
+            FlowLayoutPanel frameSpinner = new FlowLayoutPanel();
+            Button frame_up = new Button(); 
+            frame_up.Text = "+";
+            frame_up.Click += new EventHandler(OnFrameUp);
+            frame_up.AutoSize = true;
+            Button frame_down = new Button();
+            frame_down.Text = "-";
+            frame_down.Click += new EventHandler(OnFrameDown);
+            frame_down.AutoSize = true;
+            mFrameBox = new TextBox();
+            mFrameBox.Text = "0";
+            mFrameBox.TextChanged += new EventHandler(OnFrameChanged);
+            mFrameBox.KeyDown += new KeyEventHandler(OnFrameKeyDown);
+                
+            frameSpinner.Controls.Add(mFrameBox);
+            frameSpinner.Controls.Add(frame_up);
+            frameSpinner.Controls.Add(frame_down);
+
+            inner.Controls.Add(frameSpinner);
+
 
             this.Controls.Add(inner);
         }
@@ -187,14 +226,52 @@ namespace yuv3
                 break;
             }
             mF = result;
-            mAppState.UserSet(mWhich, mW, mH, result);
+            mAppState.UserSet(mWhich, mW, mH, mFrame, result);
         }
 
+        void OnFrameUp(Object sender, EventArgs e)
+        {
+            ++mFrame;
+            mFrameBox.Text = mFrame.ToString();
+            mAppState.UserSet(mWhich, mW, mH, mFrame, mF);            
+        }
+
+        void OnFrameDown(Object sender, EventArgs e)
+        {
+            --mFrame;
+            mFrameBox.Text = mFrame.ToString();
+            mAppState.UserSet(mWhich, mW, mH, mFrame, mF);            
+        }
+
+        void OnFrameChanged(Object sender, EventArgs e)
+        {
+            mFrameBox.ForeColor = System.Drawing.Color.Blue;
+        }
 
         void OnDimChanged(Object sender, EventArgs e)
         {
             // Indicate a change.
             mDimBox.ForeColor = System.Drawing.Color.Blue;
+        }
+
+        void OnFrameKeyDown(Object sender, KeyEventArgs e)
+        {
+            int new_frame;
+            if (e.KeyCode != Keys.Enter)
+            {
+                return;
+            }
+            
+            if (int.TryParse(mFrameBox.Text, out new_frame))
+            {
+                mFrame = new_frame;
+                mAppState.UserSet(mWhich, mW, mH, mFrame, mF);
+                mFrameBox.ForeColor = System.Drawing.Color.Black;
+            }
+            else
+            {
+                mFrameBox.ForeColor = System.Drawing.Color.Gray;
+            }
         }
 
         void OnDimKeyDown(Object sender, KeyEventArgs e)
@@ -223,7 +300,8 @@ namespace yuv3
                     mW = new_width;
                     mH = new_height;
                     mDimBox.ForeColor = System.Drawing.Color.Black;
-                    mAppState.UserSet(mWhich, new_width, new_height, mF);
+                    mAppState.UserSet(mWhich, new_width, new_height, 
+                                      mFrame, mF);
                 }
                 else
                 {
@@ -240,7 +318,8 @@ namespace yuv3
             {
                 try
                 {
-                    mAppState.LoadFile(mWhich, ofDlg.FileName, FileWidth, FileHeight, Format);
+                    mAppState.LoadFile(mWhich, ofDlg.FileName, 
+                                       FileWidth, FileHeight, Frame, Format);
                     mFileButton.Text = ofDlg.FileName;
                 }
                 catch (Exception x)
