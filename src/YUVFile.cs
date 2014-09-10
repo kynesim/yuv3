@@ -70,20 +70,54 @@ namespace yuv3
 
         public void CloseFile()
         {
+            ClearData();
+            if (mReader != null)
+            {
+                mReader.Close();
+                mReader = null;
+            }
+            if (mStream != null)
+            {
+                mStream.Close();
+                mStream = null;
+            }
             mLoaded = false;
         }
 
-        public unsafe void YUVToRGB(byte * result, int idx, int alpha,
+        public unsafe int clamp(int v)
+            {
+                if  (v < 0)
+                {
+                    return 0;
+                }
+                if (v > 255)
+                {
+                    return 255;
+                }
+                return v;
+            }
+
+        public unsafe void YUVToRGB(byte * result, int alpha,
                              int y, int u, int v)
-        {            
-            result[0] = (byte)alpha;
+        {           
+            // Alpha
+            int r,g ,b;
+            result[3] = (byte)alpha;
             // R
-            result[1] = (byte)(1.164*(y-16) + 1.596*(v-128));
+            r = (int)(1.164*((float)y-16.0) + 1.596*((float)v-128.0));
             // G
-            result[2] = (byte)(1.164*(y-16) - 0.813*(v-128) - 0.391*(u-128));
+            g = (int)(1.164*((float)y-16.0) - 0.813*((float)v-128.0) - 0.391*((float)u-128.0));
             // B
-            result[3] = (byte)(1.164*(y-16) + 2.018*(u - 128.0));
+            b = (int)(1.164*((float)y-16.0) + 2.018*((float)u - 128.0));
             // *result = (alpha << 24) | (r << 16) | (g << 8) | b;
+
+            r = clamp(r);
+            g = clamp(g);
+            b = clamp(b);
+
+            result[2] = (byte)r;
+            result[1] = (byte)g;
+            result[0] = (byte)b;
 
             //result[0] = 0x80;
             //result[1] = 0x60;
@@ -114,12 +148,12 @@ namespace yuv3
                         //                                 yptr, uptr, vptr, 
                         //                                mPictureBytes.Length,
                         //                               i,j));
-                        YUVToRGB(outp, rgbptr, alpha, 
+                        YUVToRGB(outp, alpha, 
                                  mPictureBytes[yptr], 
                                  mPictureBytes[uptr],
                                  mPictureBytes[vptr]);
                         
-                        YUVToRGB(outp+4, rgbptr + 4, alpha,
+                        YUVToRGB(outp+4, alpha,
                                  mPictureBytes[yptr + 1], 
                                      mPictureBytes[uptr],
                                  mPictureBytes[vptr]);
@@ -154,20 +188,21 @@ namespace yuv3
                     old_uptr = uptr;
                     old_vptr = vptr;
                     outp = out_line;
-                    for (int i = 0; i < mWidth; i += 2, outp += 8)
+                    for (int i = 0; i < mWidth; i += 2, outp += 8, yptr += 2)
                     {
                         //Console.WriteLine(String.Format("ptr {0}, {1}, {2} -> {3} @ {4}, {5}\n",
                          //                                yptr, uptr, vptr, 
                           //                              mPictureBytes.Length,
-                           //                            i,j));
-                        YUVToRGB(outp, rgbptr, alpha, 
-                                 mPictureBytes[yptr], 
-                                 mPictureBytes[uptr],
+                        //                            i,j));
+
+                        YUVToRGB(outp, alpha, 
+                                  mPictureBytes[yptr],  
+                                 mPictureBytes[uptr], 
                                  mPictureBytes[vptr]);
                         
-                        YUVToRGB(outp+4, rgbptr + 4, alpha,
+                        YUVToRGB(outp+4, alpha,
                                  mPictureBytes[yptr + 1], 
-                                     mPictureBytes[uptr],
+                                 mPictureBytes[uptr], 
                                  mPictureBytes[vptr]);
                         
                         ++uptr;
@@ -264,7 +299,14 @@ namespace yuv3
                 {
                     mNotifier.Warning(String.Format("Cannot open {0} - {1}",
                                                     in_file, e), false);
-                    result_stream.Close();
+                    if (new_reader != null)
+                    {
+                        new_reader.Close();    
+                    }
+                    if (result_stream != null)
+                    {
+                        result_stream.Close();
+                    }
                     mLoaded = false;
                 }
             }

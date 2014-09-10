@@ -35,9 +35,13 @@ namespace yuv3
         public void LoadFile(int which, string in_name, int w, int h, int frame,
                              YUVFileFormat fmt)
         {
+            Console.WriteLine("A");
             mFiles[which].CloseFile();
+            Console.WriteLine("B");
             mFiles[which].Set(w,h, frame, fmt);
+            Console.WriteLine("C");
             mFiles[which].LoadFile(in_name);
+            Console.WriteLine("D");
             mW.SetStatus("Loaded " + in_name, false);
             /* Now reconstruct the display */
             mW.Display.UpdateLayer(which, mFiles[which], 128);

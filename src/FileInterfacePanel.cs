@@ -310,6 +310,27 @@ namespace yuv3
             }
         }
 
+        YUVFileFormat FormatFromExtension(string ext)
+        {
+            if (ext == "yuv420i")
+            {
+                return YUVFileFormat.YUV420I;
+            }
+            else if (ext == "yuv420p")
+            {
+                return YUVFileFormat.YUV420P;
+            }
+            else if (ext == "yuyv")
+            {
+                return YUVFileFormat.YUYV;
+            }
+            else if (ext == "yvyu")
+            {
+                return YUVFileFormat.YVYU;
+            }
+            return YUVFileFormat.Unknown;
+        }
+
         void OnFileOpen(object sender, EventArgs e)
         {
             OpenFileDialog ofDlg = new OpenFileDialog();
@@ -318,9 +339,52 @@ namespace yuv3
             {
                 try
                 {
+                    string fn = ofDlg.FileName;
+                    int w, h;
+                    YUVFileFormat f;
+                    
+                    /* See if the file names some parameters */
+                    Regex dimensions = new Regex("_([0-9]+)x([0-9]+)");
+                    Match m = dimensions.Match(fn);
+                    if (m.Value != String.Empty)
+                    {
+                        w = int.Parse(m.Groups[1].Value);
+                        h = int.Parse(m.Groups[2].Value);
+                    }
+                    else
+                    {
+                        w = FileWidth;
+                        h = FileHeight;
+                    }
+                    
+                    /* Find the extension */
+                    int last_dot = fn.LastIndexOf('.');
+                    if (last_dot > 0)
+                    {
+                        string extn = fn.Substring(last_dot+1);
+                        f = FormatFromExtension(extn);
+                        if (f == YUVFileFormat.Unknown)
+                        {
+                            f = Format;
+                        }
+                    }
+                    else
+                    {
+                        f = Format;
+                    }
+                       
+                    Console.WriteLine(String.Format("{0} x{1}", w,h));
                     mAppState.LoadFile(mWhich, ofDlg.FileName, 
-                                       FileWidth, FileHeight, Frame, Format);
+                                       w, h, Frame, f);
                     mFileButton.Text = ofDlg.FileName;
+                    if (f != Format)
+                    {
+                        SetNewFormat(f);
+                    }
+                    if (w != FileWidth || h != FileHeight)
+                    {
+                        SetNewDimensions(w,h);
+                    }
                 }
                 catch (Exception x)
                 {
