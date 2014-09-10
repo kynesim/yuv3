@@ -25,7 +25,6 @@ namespace yuv3
         public int mHeight;
         public int mFrame;
         public YUVFileFormat mFormat;
-        BinaryReader mReader;
         FileStream mStream;
         bool mLoaded;
         byte[] mPictureBytes;
@@ -68,15 +67,26 @@ namespace yuv3
             }
         }
 
+        public int Checksum
+        {
+            get
+            {
+                int sum = 0;
+                if (mPictureBytes != null)
+                {
+                    for (int i = 0; i <mPictureBytes.Length; ++i)
+                    {
+                        sum += mPictureBytes[i];
+                    }
+                }
+                return sum;
+            }
+        }
+
 
         public void CloseFile()
         {
             ClearData();
-            if (mReader != null)
-            {
-                mReader.Close();
-                mReader = null;
-            }
             if (mStream != null)
             {
                 mStream.Close();
@@ -206,7 +216,6 @@ namespace yuv3
                                  mPictureBytes[yptr + 1], 
                                  mPictureBytes[uptr], 
                                  mPictureBytes[vptr]);
-                        
                     }
                 });
                 return true;
@@ -220,7 +229,8 @@ namespace yuv3
                 }
 
                 
-                switch (mFormat)
+                Console.WriteLine(String.Format("ToRGB32! {0} {1}", mWidth,mHeight));
+                switch (mFormat) 
                 {
                 case YUVFileFormat.YUV420I:
                     return Convert420I(ioData, alpha);
@@ -234,7 +244,7 @@ namespace yuv3
 
         public bool EnsureData()
         {
-            if (FileOffsetOfPicture < 0)
+            if (FileOffsetOfPicture < 0 || mStream == null || !mLoaded)
             {
                 ClearData();
                 return false;
@@ -247,9 +257,14 @@ namespace yuv3
                 try
                 {
                     mPictureBytes = new byte[BytesPerPicture];
+                    Console.WriteLine(String.Format("Reading {0} bytes from {1}",
+                                                    BytesPerPicture, FileOffsetOfPicture));
                     mStream.Seek(FileOffsetOfPicture, SeekOrigin.Begin);
-                    mReader.Read(mPictureBytes, 
+                    mStream.Read(mPictureBytes, 
                                  0, BytesPerPicture);
+                    mPictureOffset = FileOffsetOfPicture;
+                    Console.WriteLine(String.Format("Sum = {0}",
+                                                    Checksum));
                 }
                 catch (Exception e)
                 {
@@ -258,6 +273,10 @@ namespace yuv3
                                       false);
                     return false;
                 }
+            }
+            else
+            {
+                Console.WriteLine(String.Format("XX {0}", Checksum));
             }
             return true;
         }
@@ -278,8 +297,6 @@ namespace yuv3
             {
                 FileStream result_stream = 
                     new FileStream(in_file, FileMode.Open);
-                BinaryReader new_reader = 
-                    new BinaryReader(result_stream);
 
                 // Remove any old data.
                 ClearData();
@@ -287,17 +304,12 @@ namespace yuv3
                 try
                 {
                     mStream = result_stream;
-                    mReader = new_reader;
                     mLoaded = true;
                 }
                 catch (Exception e)
                 {
                     mNotifier.Warning(String.Format("Cannot open {0} - {1}",
                                                     in_file, e), false);
-                    if (new_reader != null)
-                    {
-                        new_reader.Close();    
-                    }
                     if (result_stream != null)
                     {
                         result_stream.Close();
@@ -308,7 +320,6 @@ namespace yuv3
             else
             {
                 mStream = null;
-                mReader = null;
                 mLoaded = false;
             }
             mFileName = in_file;

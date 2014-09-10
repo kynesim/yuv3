@@ -20,10 +20,11 @@ namespace yuv3
         public void UserSet(int which, int w, int h, int frame, 
                             YUVFileFormat fmt)
         {
+            Console.Write("USerSet called");
             if (mFiles[which] != null)
             {
                 mFiles[which].Set(w,h, frame, fmt);
-                mW.Display.UpdateLayer(which, mFiles[which], 128);
+                mW.Display.UpdateLayer(which, mFiles[which], 255);
             }
         }
 

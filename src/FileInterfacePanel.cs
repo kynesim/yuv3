@@ -225,8 +225,12 @@ namespace yuv3
                 // Hmm .. 
                 break;
             }
-            mF = result;
-            mAppState.UserSet(mWhich, mW, mH, mFrame, result);
+            if (result != mF)
+            {
+                mF = result;
+                mAppState.UserSet(mWhich, mW, mH, mFrame, result);
+            }
+
         }
 
         void OnFrameUp(Object sender, EventArgs e)
@@ -380,6 +384,9 @@ namespace yuv3
                     mAppState.LoadFile(mWhich, ofDlg.FileName, 
                                        w, h, Frame, f);
                     mFileButton.Text = ofDlg.FileName;
+
+                    // Now that we are sure the new load is OK .. 
+                    mF = f; mW = w; mH = h;
                     if (f != Format)
                     {
                         SetNewFormat(f);
