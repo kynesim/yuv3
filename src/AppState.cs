@@ -12,6 +12,9 @@ namespace yuv3
         public MainWindow mW;
         public IStatusNotifier mNotifier;
 
+        // Stores which index is in which register: -1 => none.
+        public int[] mRegisters;
+
         public void SetStatus(string in_status, bool withDialog = false)
         {            
             mW.SetStatus(in_status, withDialog);
@@ -61,10 +64,24 @@ namespace yuv3
             }
         }
 
+        public void StoreToRegister(int regno, int which)
+        {
+            if (mRegisters[regno] != -1)
+            {
+                mW.ClearRegister(regno, mRegisters[regno]);
+            }
+            mRegisters[regno] = which;
+        }
+
         public AppState()
         {
             mW = null;
             mFiles = new YUVFile[Constants.kNumberOfChannels];
+            mRegisters = new int[Constants.kRegisters];
+            for (int i =0 ;i < mRegisters.Length; ++i)
+            {
+                mRegisters[i] = -1;
+            }
             mNotifier = new ConsoleStatusNotifier();
             for (int i = 0; i < mFiles.Length; ++i)
             {

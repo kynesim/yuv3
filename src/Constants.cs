@@ -7,6 +7,8 @@ namespace yuv3
     {        
         public const int kNumberOfChannels = 4;
 
+
+        public const int kRegisters = 8;
         public const int kDefaultWidth = 640;
         public const int kDefaultHeight = 480;
         public const YUVFileFormat kDefaultFormat = YUVFileFormat.YUV420P;

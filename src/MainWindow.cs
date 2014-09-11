@@ -12,6 +12,7 @@ namespace yuv3
         StatusBar mStatus;
         MenuStrip mMenu;
         FileInterfacePanel[] mFiles;
+        ToolBar mTools;
 
         public DisplayYUVControl mDisplay;
         
@@ -168,6 +169,11 @@ namespace yuv3
             SetStatus("Idle", false);
 
             Text = "YUV3";
+        }
+
+        public void ClearRegister(int regno, int which)
+        {
+            mFiles[which].SetRegister(regno, false);
         }
 
         void OnExit(object sender, EventArgs e)

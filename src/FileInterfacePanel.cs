@@ -18,6 +18,7 @@ namespace yuv3
         int mW, mH, mFrame;
         YUVFileFormat mF;
         CheckBox mVisibleCheckBox;
+        CheckBox[] mRegisterChecks;
 
         public int FileWidth
         {
@@ -88,19 +89,26 @@ namespace yuv3
             mVisibleCheckBox.AutoSize = true;
             buttons.Controls.Add(mVisibleCheckBox);
 
-            Button up = new Button();
-            up.Text = "Up";
-            up.AutoSize = true;
-            buttons.Controls.Add(up);
-
-            Button down = new Button();
-            down.Text = "Down";
-            down.AutoSize = true;
-            buttons.Controls.Add(down);
-
+            /* Now, we have a series of checkbox buttons that say which register
+             * we are in.
+             */
+            mRegisterChecks = new CheckBox[Constants.kRegisters];
+            for (int i =0 ;i < Constants.kRegisters; ++i)
+            {
+                // Oh, C#, you _do_ have an interesting closure implementation and
+                // the usual \x.\y.(x) notation doesn't work for you.
+                int regno = i;
+                CheckBox cb = new CheckBox();
+                cb.Text = String.Format("{0}", (char)('A' + i));
+                cb.Appearance = Appearance.Button;
+                cb.AutoSize = true;
+                cb.CheckedChanged += new EventHandler
+                    ( (Object sender, EventArgs e) => {  StoreToRegister(sender, e, regno); } );
+                buttons.Controls.Add(cb);
+                mRegisterChecks[i] = cb;
+            }
 
             title.Controls.Add(buttons);
-            
             
 
             this.Controls.Add(title);
@@ -197,6 +205,16 @@ namespace yuv3
                 mFormat.SelectedIndex = 4;
                 break;
             }
+        }
+
+        public void StoreToRegister(Object sender, EventArgs e, int regno)
+        {
+            mAppState.StoreToRegister(regno, ((CheckBox)sender).Checked ? mWhich : -1);
+        }
+        
+        public void SetRegister(int reg, bool is_set)
+        {
+            mRegisterChecks[reg].Checked = is_set;
         }
 
         public void SetNewDimensions(int w, int h)
