@@ -20,12 +20,16 @@ namespace yuv3
         public void UserSet(int which, int w, int h, int frame, 
                             YUVFileFormat fmt)
         {
-            Console.Write("USerSet called");
             if (mFiles[which] != null)
             {
                 mFiles[which].Set(w,h, frame, fmt);
-                mW.Display.UpdateLayer(which, mFiles[which], 255);
+                mW.Display.UpdateLayer(which, mFiles[which]);
             }
+        }
+
+        public void SetVisible(int layer, bool visible)
+        {
+            mW.Display.UpdateLayer(layer, (visible ? mFiles[layer] : null));
         }
 
         public void SetMainWindow(MainWindow in_mw) 
@@ -45,7 +49,7 @@ namespace yuv3
             Console.WriteLine("D");
             mW.SetStatus("Loaded " + in_name, false);
             /* Now reconstruct the display */
-            mW.Display.UpdateLayer(which, mFiles[which], 255);
+            mW.Display.UpdateLayer(which, mFiles[which]);
         }
 
         public void ReplaceNotifier(IStatusNotifier isn)

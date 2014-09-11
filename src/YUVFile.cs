@@ -296,7 +296,9 @@ namespace yuv3
             if (in_file != null)
             {
                 FileStream result_stream = 
-                    new FileStream(in_file, FileMode.Open);
+                    new FileStream(in_file, FileMode.Open,
+                                   FileAccess.Read,
+                                   FileShare.Read);
 
                 // Remove any old data.
                 ClearData();

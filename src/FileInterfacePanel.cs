@@ -17,6 +17,7 @@ namespace yuv3
         ComboBox mFormat;
         int mW, mH, mFrame;
         YUVFileFormat mF;
+        CheckBox mVisibleCheckBox;
 
         public int FileWidth
         {
@@ -80,17 +81,21 @@ namespace yuv3
             buttons.ColumnCount = 4;
             buttons.Anchor = AnchorStyles.Right;
             
-            CheckBox on = new CheckBox();
-            on.Text = "On";
-            on.Appearance = Appearance.Button;
-            buttons.Controls.Add(on);
+            mVisibleCheckBox = new CheckBox();
+            mVisibleCheckBox.Text = "On";
+            mVisibleCheckBox.Appearance = Appearance.Button;
+            mVisibleCheckBox.CheckedChanged += new EventHandler(OnVisibleChanged);
+            mVisibleCheckBox.AutoSize = true;
+            buttons.Controls.Add(mVisibleCheckBox);
 
             Button up = new Button();
             up.Text = "Up";
+            up.AutoSize = true;
             buttons.Controls.Add(up);
 
             Button down = new Button();
             down.Text = "Down";
+            down.AutoSize = true;
             buttons.Controls.Add(down);
 
 
@@ -200,6 +205,12 @@ namespace yuv3
             mDimBox.Text = string.Format("{0} x {1}", 
                                            w, h);
             mDimBox.ForeColor = System.Drawing.Color.Black;
+        }
+
+        public void OnVisibleChanged(Object sender, EventArgs e)
+        {
+            mAppState.SetVisible(mWhich,
+                                 (mVisibleCheckBox.CheckState == CheckState.Checked));
         }
 
 
