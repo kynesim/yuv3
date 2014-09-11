@@ -22,13 +22,14 @@ namespace yuv3
         }
     }
 
-    public class DisplayYUVControl : Control
+    public class DisplayYUVControl : ScrollableControl
     {
         public AppState mAppState;
         // Layers, in order.
         public LayerInfo[] mLayers;
         // If non-Null, we are displaying a math function and this is it.
         public Bitmap mMath;
+        public Size renderSize;
 
         public DisplayYUVControl(AppState in_as)
         {
@@ -41,6 +42,7 @@ namespace yuv3
             }
             mMath = null;
             Paint += new PaintEventHandler(Render);
+            Size = new Size(320, 240);
         }
 
         public void UpdateLayer(int layer, YUVFile aFile)
@@ -88,7 +90,7 @@ namespace yuv3
                     }
                 }
             }
-            this.Refresh();
+            this.ImagesChanged();
         }
 
         public void RenderToBitmap(LayerInfo result, YUVFile aFile, int alpha)
@@ -133,12 +135,46 @@ namespace yuv3
             result.mBitmap.UnlockBits(someData);
         }
 
+
+        public void ImagesChanged()
+        {
+            /* Work out the new size for this control */
+            // We never claim to be any smaller than this.
+            int max_w = 320, max_h = 240;
+            int z = mAppState.Zoom;
+            for (int i =0 ;i < mLayers.Length; ++i)
+            {
+                if (mLayers[i].mBitmap != null)
+                {
+                    int w = mLayers[i].mBitmap.Width * z;
+                    int h = mLayers[i].mBitmap.Height * z;
+                    if (w > max_w)
+                    {
+                        max_w =w;
+                    }
+                    if (h > max_h)
+                    {
+                        max_h = h;
+                    }
+                }
+            }
+            this.renderSize = new Size(max_w, max_h);
+            this.Size = this.renderSize;
+            this.Refresh();
+        }
+
+        public override Size GetPreferredSize(Size proposed)
+        {
+            return this.renderSize;
+        }
+
         void Render(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            Rectangle everywhere = new Rectangle(0, 0, this.Size.Width, this.Size.Height);
             bool any = false;
             int zoom = mAppState.Zoom;
+            Rectangle everywhere = new Rectangle(0, 0, zoom * this.renderSize.Width, 
+                                                 zoom * this.renderSize.Height);
 
             // Speed up scaling -we do a lot of it.
             // g.InterpolationMode = InterpolationMode.NearestNeighbour;

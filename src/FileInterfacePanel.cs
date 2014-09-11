@@ -4,10 +4,11 @@
 using System;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
+using System.Drawing;
 
 namespace yuv3
 {
-    public class FileInterfacePanel : TableLayoutPanel
+    public class FileInterfacePanel : FlowLayoutPanel
     {
         int mWhich;
         TextBox mDimBox;
@@ -19,6 +20,7 @@ namespace yuv3
         YUVFileFormat mF;
         CheckBox mVisibleCheckBox;
         CheckBox[] mRegisterChecks;
+        double mPixelsPerPoint;
 
         public int FileWidth
         {
@@ -54,40 +56,47 @@ namespace yuv3
 
         public FileInterfacePanel(AppState inAppState, int which) 
         {
-            this.ColumnCount = 1;
-            this.Anchor = AnchorStyles.Left | AnchorStyles.Right |
-                AnchorStyles.Top | AnchorStyles.Bottom;
+            this.FlowDirection = FlowDirection.TopDown;
+            // this.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            // this.Dock = DockStyle.Top;
             this.AutoSize = true;
-            this.BackColor = System.Drawing.Color.Red;
+            this.AutoSizeMode = AutoSizeMode.GrowOnly;
             this.mWhich = which;
             this.mFrame = 0;
             this.mAppState = inAppState;
-
+            this.WrapContents = false;
+            this.BorderStyle = BorderStyle.Fixed3D;
+            
             TableLayoutPanel title = new TableLayoutPanel();
-            title.AutoSize = true;
             title.ColumnCount = 2;
+            title.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            title.AutoSize = true;
+            title.AutoSizeMode = AutoSizeMode.GrowOnly;
 
             Label a_title = new Label();
             a_title.Text = string.Format("File#{0}", 
                                          this.mWhich);
-            a_title.Anchor = AnchorStyles.Left | AnchorStyles.Top;
             title.Controls.Add(a_title);
 
 
-            TableLayoutPanel buttons = new TableLayoutPanel();
-
+            FlowLayoutPanel buttons = new FlowLayoutPanel();
+            buttons.FlowDirection = FlowDirection.LeftToRight;
             buttons.AutoSize = true;
-            buttons.BackColor = System.Drawing.Color.Yellow;
-            buttons.RowCount = 1;
-            buttons.ColumnCount = 4;
-            buttons.Anchor = AnchorStyles.Right;
+            buttons.AutoSizeMode = AutoSizeMode.GrowOnly;
+
+            {
+                Graphics g = this.CreateGraphics();
+                mPixelsPerPoint = (double)g.DpiX / 72.0;
+                g.Dispose();
+            }
             
             mVisibleCheckBox = new CheckBox();
             mVisibleCheckBox.Text = "On";
             mVisibleCheckBox.Appearance = Appearance.Button;
             mVisibleCheckBox.CheckedChanged += new EventHandler(OnVisibleChanged);
-            mVisibleCheckBox.AutoSize = true;
+            mVisibleCheckBox.Width = (int)(mPixelsPerPoint * mVisibleCheckBox.Font.SizeInPoints * 3);
             buttons.Controls.Add(mVisibleCheckBox);
+                
 
             /* Now, we have a series of checkbox buttons that say which register
              * we are in.
@@ -100,8 +109,8 @@ namespace yuv3
                 int regno = i;
                 CheckBox cb = new CheckBox();
                 cb.Text = String.Format("{0}", (char)('A' + i));
+                cb.Width = (int)(mPixelsPerPoint * cb.Font.SizeInPoints * 2);
                 cb.Appearance = Appearance.Button;
-                cb.AutoSize = true;
                 cb.CheckedChanged += new EventHandler
                     ( (Object sender, EventArgs e) => {  StoreToRegister(sender, e, regno); } );
                 buttons.Controls.Add(cb);
@@ -110,15 +119,11 @@ namespace yuv3
 
             title.Controls.Add(buttons);
             
-
-            this.Controls.Add(title);
-            
             TableLayoutPanel inner = new TableLayoutPanel();
             inner.ColumnCount = 2;
-            inner.RowCount = 4;
-            inner.Anchor = AnchorStyles.Left | AnchorStyles.Right |
-               AnchorStyles.Top;
+            inner.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             inner.AutoSize = true;
+            inner.AutoSizeMode = AutoSizeMode.GrowOnly;
 
             Label f = new Label();
             f.Text = "File: ";
@@ -126,8 +131,9 @@ namespace yuv3
             inner.Controls.Add(f);
             mFileButton = new Button();
             mFileButton.Text = "None";
+            mFileButton.AutoSize = true;
+            mFileButton.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             mFileButton.Click += new EventHandler(OnFileOpen);
-            mFileButton.Anchor = AnchorStyles.Right | AnchorStyles.Left;
             inner.Controls.Add(mFileButton);
 
             Label w = new Label(); 
@@ -142,7 +148,6 @@ namespace yuv3
             mH = Constants.kDefaultHeight;
             mF = Constants.kDefaultFormat;
             inner.Controls.Add(mDimBox);
-            mDimBox.Anchor = AnchorStyles.Right | AnchorStyles.Left;
             mDimBox.TextChanged += new EventHandler(OnDimChanged);
             mDimBox.KeyDown += new KeyEventHandler(OnDimKeyDown);
 
@@ -171,26 +176,29 @@ namespace yuv3
             frame_up.AutoSize = true;
             Button frame_down = new Button();
             frame_down.Text = "-";
-            frame_down.Click += new EventHandler(OnFrameDown);
             frame_down.AutoSize = true;
+            frame_down.Click += new EventHandler(OnFrameDown);
             mFrameBox = new TextBox();
             mFrameBox.Text = "0";
+            mFrameBox.Width = (int)(mPixelsPerPoint * mFrameBox.Font.SizeInPoints * 8);
             mFrameBox.TextChanged += new EventHandler(OnFrameChanged);
             mFrameBox.KeyDown += new KeyEventHandler(OnFrameKeyDown);
                 
+            
+            frameSpinner.Controls.Add(frame_down);           
             frameSpinner.Controls.Add(mFrameBox);
-            frameSpinner.Controls.Add(frame_up);
-            frameSpinner.Controls.Add(frame_down);
+            frameSpinner.Controls.Add(frame_up);           
+
 
             inner.Controls.Add(frameSpinner);
-
-
+            this.Controls.Add(title);
             this.Controls.Add(inner);
         }
 
 
         public void SetNewFormat(YUVFileFormat ff)
         {
+            Console.WriteLine("ff = {0}",(int)ff);
             switch (ff)
             {
             case YUVFileFormat.YUV420I: mFormat.SelectedIndex = 0;
@@ -223,6 +231,12 @@ namespace yuv3
             mDimBox.Text = string.Format("{0} x {1}", 
                                            w, h);
             mDimBox.ForeColor = System.Drawing.Color.Black;
+        }
+
+        
+        public void SetVisible(bool is_visible)
+        {
+            mVisibleCheckBox.CheckState = (is_visible ? CheckState.Checked : CheckState.Unchecked);
         }
 
         public void OnVisibleChanged(Object sender, EventArgs e)
@@ -414,13 +428,16 @@ namespace yuv3
                                        w, h, Frame, f);
                     mFileButton.Text = ofDlg.FileName;
 
+                    Console.WriteLine(String.Format(" Back .. "));
                     // Now that we are sure the new load is OK .. 
+                    bool f_changed = (f != Format);
+                    bool s_changed = (w != FileWidth || h != FileHeight);
                     mF = f; mW = w; mH = h;
-                    if (f != Format)
+                    if (f_changed)
                     {
                         SetNewFormat(f);
                     }
-                    if (w != FileWidth || h != FileHeight)
+                    if (s_changed)
                     {
                         SetNewDimensions(w,h);
                     }

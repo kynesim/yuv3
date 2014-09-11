@@ -10,11 +10,11 @@ namespace yuv3
     public class MainWindow :  Form, IStatusNotifier
     {
         AppState mAppState;
-        StatusBar mStatus;
         MenuStrip mMenu;
         FileInterfacePanel[] mFiles;
         ToolStrip mTools;
         ToolStripTextBox mZoomBox;
+        ToolStripStatusLabel mStatus;
         double mPixelsPerPoint;
 
         public DisplayYUVControl mDisplay;
@@ -56,16 +56,18 @@ namespace yuv3
             mPixelsPerPoint = (double)g.DpiX / 72.0;
             g.Dispose();
 
+            this.BackColor = System.Drawing.Color.White;
 
-            AutoScroll = true;
-
-            TableLayoutPanel topFlow = new TableLayoutPanel();
-            topFlow.Parent = this;
-            topFlow.RowCount = 1;
+            FlowLayoutPanel topFlow = new FlowLayoutPanel();
+            topFlow.FlowDirection = FlowDirection.TopDown;
             topFlow.Dock = DockStyle.Fill;
+            topFlow.Anchor = AnchorStyles.Left |
+                AnchorStyles.Bottom | AnchorStyles.Right;
+            topFlow.AutoSize = true;
 
             mMenu = new MenuStrip();
-            topFlow.Controls.Add(mMenu);
+
+            // topFlow.Controls.Add(mMenu);
             ToolStripMenuItem file = new ToolStripMenuItem("&File");
             mMenu.Items.Add(file);
 
@@ -80,10 +82,12 @@ namespace yuv3
                                                          Keys.Control | Keys.X));
             
 
+            this.MainMenuStrip = mMenu;
+            topFlow.BackColor = System.Drawing.Color.Blue;
+
 
 
             mTools= new ToolStrip();
-            mTools.Anchor = AnchorStyles.Top;
 
             ToolStripButton zPlus = new ToolStripButton();
             zPlus.Text = "+";
@@ -103,105 +107,66 @@ namespace yuv3
             zMinus.AutoSize = true;
             zMinus.Click += new EventHandler(OnDecreaseZoom);
             mTools.Items.Add(zMinus);
-
-            topFlow.Controls.Add(mTools);
-            
+           
 
             SplitContainer topSplit = new SplitContainer();
-            topSplit.Panel1.AutoScroll = true;
-            topSplit.Panel2.AutoScroll = true;
 
             topSplit.Orientation = Orientation.Vertical;
-            topSplit.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | 
-                AnchorStyles.Bottom;
-            topSplit.AutoSize = true;
-
-            topFlow.Controls.Add(topSplit);
-            topFlow.AutoSize = true;
-
-            TableLayoutPanel controlPanel = new TableLayoutPanel();
-
-            controlPanel.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top |
-                AnchorStyles.Bottom;
-            controlPanel.Dock = DockStyle.Fill;
-            controlPanel.RowCount = 1;
-            controlPanel.AutoSize = true;
-
-            {
-                TableLayoutPanel paramPanel = new TableLayoutPanel();
-                paramPanel.ColumnCount = 1;
-                paramPanel.AutoSize = true;
-                paramPanel.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top |
-                    AnchorStyles.Bottom;
-
-                mFiles = new FileInterfacePanel[Constants.kNumberOfChannels];
-                for (int i = 0; i < Constants.kNumberOfChannels; ++i)
-                {
-                    mFiles[i] = new FileInterfacePanel(mAppState, i);
-                    paramPanel.Controls.Add(mFiles[i]);
-                }
-
-                // Label w = new Label(); 
-                // w.Text = "Width: ";
-                // w.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-                // paramPanel.Controls.Add(w, 0, 0);
-                // mWidth = new TextBox();
-                // paramPanel.Controls.Add(mWidth, 1, 0);
-                // mWidth.TextChanged += new EventHandler(OnWidthChanged);
-
-                // Label h = new Label();
-                // h.Text = "Height: ";
-                // h.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-                // paramPanel.Controls.Add(h, 0, 1);
-                // mHeight = new TextBox();
-                // paramPanel.Controls.Add(mHeight, 1, 1);
-                // mHeight.TextChanged += new EventHandler(OnHeightChanged);
-
-                    
-                controlPanel.Controls.Add(paramPanel);
-            }
-            {
-                TableLayoutPanel mathPanel = new TableLayoutPanel();
-                mathPanel.AutoSize = true;
-                mathPanel.RowCount = 1;
-                mathPanel.Anchor = AnchorStyles.Top | 
-                    AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
-
-                CheckBox diffButton = new CheckBox();
-                diffButton.Appearance = Appearance.Button;
-                diffButton.Text = "Diff";
-                mathPanel.Controls.Add(diffButton);
-                controlPanel.Controls.Add(mathPanel);
-                controlPanel.Dock = DockStyle.Fill;
-            }
-
-            topSplit.BorderStyle = BorderStyle.FixedSingle;
-            topSplit.Panel1.Controls.Add(controlPanel);
-            topSplit.Panel1Collapsed = false;
-            topSplit.Panel2Collapsed = false;
-            topSplit.Panel1MinSize = 200;
-            topSplit.Panel2MinSize = 200;          
             topSplit.Dock = DockStyle.Fill;
+            topSplit.BorderStyle = BorderStyle.FixedSingle;
 
-            mDisplay.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Bottom 
-                | AnchorStyles.Right;
-            mDisplay.AutoSize = true;
-            mDisplay.Dock = DockStyle.Fill;
+            FlowLayoutPanel paramPanel = new FlowLayoutPanel();
+            paramPanel.FlowDirection = FlowDirection.TopDown;
+            paramPanel.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            paramPanel.AutoSize = true;
+            paramPanel.WrapContents = false;
+            paramPanel.AutoSizeMode = AutoSizeMode.GrowOnly;
+            mFiles = new FileInterfacePanel[Constants.kNumberOfChannels];
+            for (int i = 0; i < Constants.kNumberOfChannels; ++i)
+            {
+                mFiles[i] = new FileInterfacePanel(mAppState, i);
+                paramPanel.Controls.Add(mFiles[i]);
+            }
+
+            paramPanel.Size = paramPanel.PreferredSize;
+            topSplit.Panel1.Controls.Add(paramPanel);
+            topSplit.Panel1.AutoScroll = true;
+            topSplit.Panel1.Anchor = AnchorStyles.Left;
+
+            mDisplay.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             topSplit.Panel2.Controls.Add(mDisplay);
-            topSplit.Panel2.AutoSize = true;
-
+            topSplit.Panel2.AutoScroll = true;
+            
 //             mDisplay.BackColor = System.Drawing.Color.Blue;
+            
+            StatusStrip a_strip = new StatusStrip();
+            mStatus = new ToolStripStatusLabel();
+            a_strip.Items.Add(mStatus);
 
-            mStatus= new StatusBar();
-            mStatus.Parent = this;
+            mStatus.Text = "XXXXX";
+            Controls.Add(topSplit);
+            this.Controls.Add(mTools);
+            Controls.Add(mMenu);
+            this.Controls.Add(a_strip);
 
-            Height = 600;
-            Width = 1000;
+            // topFlow.Controls.Add(topSplit);
+            // this.Controls.Add(topFlow);
+
+            Width = 600;
+            Height = 1000;
+
+            topSplit.SplitterDistance = paramPanel.Width;
+            topSplit.FixedPanel = FixedPanel.Panel1;
 
             mAppState.ReplaceNotifier(this);
             SetStatus("Idle", false);
 
             Text = "YUV3";
+        }
+
+        public void SetVisible(int which, bool is_visible)
+        {
+            mFiles[which].SetVisible(is_visible);
         }
 
         public void OnZoomChanged(Object sender, EventArgs e)
