@@ -4,6 +4,8 @@
 using System;
 using System.Windows.Forms;
 using System.Drawing;
+using System.IO;
+using System.Reflection;
 
 namespace yuv3
 {
@@ -16,6 +18,9 @@ namespace yuv3
         ToolStripTextBox mZoomBox;
         ToolStripStatusLabel mStatus;
         double mPixelsPerPoint;
+
+        Assembly _assembly;
+        Stream _bgimageStream;
 
         public DisplayYUVControl mDisplay;
         
@@ -46,8 +51,22 @@ namespace yuv3
             }
         }
 
+
         public MainWindow(AppState inAppState)
         {
+            // Faff with reflection.
+            try
+            {
+                _assembly = Assembly.GetExecutingAssembly();
+                _bgimageStream = _assembly.GetManifestResourceStream("MainBackground.png");
+                Console.WriteLine("is = {0}", _bgimageStream == null);
+            }
+            catch
+            {
+                MessageBox.Show("Cannot load resources");
+            }
+               
+
             mAppState = inAppState;
             mAppState.SetMainWindow(this);
             mDisplay = new DisplayYUVControl(inAppState);
@@ -136,7 +155,12 @@ namespace yuv3
             mDisplay.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             topSplit.Panel2.Controls.Add(mDisplay);
             topSplit.Panel2.AutoScroll = true;
-            
+            if (_bgimageStream != null) 
+            {
+                topSplit.Panel2.BackgroundImageLayout = ImageLayout.Tile ;
+                topSplit.Panel2.BackgroundImage = new Bitmap(_bgimageStream);
+            }
+
 //             mDisplay.BackColor = System.Drawing.Color.Blue;
             
             StatusStrip a_strip = new StatusStrip();

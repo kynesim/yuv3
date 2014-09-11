@@ -72,10 +72,16 @@ namespace yuv3
             title.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             title.AutoSize = true;
             title.AutoSizeMode = AutoSizeMode.GrowOnly;
+            title.BackColor = System.Drawing.Color.DarkGray;
+            title.ForeColor = System.Drawing.Color.White;
 
             Label a_title = new Label();
             a_title.Text = string.Format("File#{0}", 
                                          this.mWhich);
+            a_title.AutoSize = true;
+            a_title.TextAlign = ContentAlignment.MiddleCenter;
+            a_title.Font = new Font("Times New Roman", 14.0f);
+            a_title.Padding = new Padding(0, 4, 0, 0);
             title.Controls.Add(a_title);
 
 
@@ -124,6 +130,7 @@ namespace yuv3
             inner.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             inner.AutoSize = true;
             inner.AutoSizeMode = AutoSizeMode.GrowOnly;
+            inner.BackColor = System.Drawing.Color.LightGray;
 
             Label f = new Label();
             f.Text = "File: ";
@@ -320,7 +327,7 @@ namespace yuv3
             }
             else
             {
-                mFrameBox.ForeColor = System.Drawing.Color.Gray;
+                mFrameBox.ForeColor = System.Drawing.Color.Red;
             }
         }
 
@@ -355,7 +362,7 @@ namespace yuv3
                 }
                 else
                 {
-                    mDimBox.ForeColor = System.Drawing.Color.Gray;
+                    mDimBox.ForeColor = System.Drawing.Color.Red;
                 }
             }
         }
