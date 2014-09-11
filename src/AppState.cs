@@ -11,6 +11,21 @@ namespace yuv3
         public YUVFile[] mFiles;
         public MainWindow mW;
         public IStatusNotifier mNotifier;
+        public int mZoom;
+
+        public int Zoom
+        {
+            get
+            {
+                return mZoom;
+            }
+            
+            set
+            {
+                mZoom = value;
+                mW.Display.Refresh();
+            }
+        }
 
         // Stores which index is in which register: -1 => none.
         public int[] mRegisters;
@@ -78,6 +93,7 @@ namespace yuv3
             mW = null;
             mFiles = new YUVFile[Constants.kNumberOfChannels];
             mRegisters = new int[Constants.kRegisters];
+            mZoom = 1;
             for (int i =0 ;i < mRegisters.Length; ++i)
             {
                 mRegisters[i] = -1;

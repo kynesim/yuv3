@@ -138,16 +138,20 @@ namespace yuv3
             Graphics g = e.Graphics;
             Rectangle everywhere = new Rectangle(0, 0, this.Size.Width, this.Size.Height);
             bool any = false;
+            int zoom = mAppState.Zoom;
 
             // Speed up scaling -we do a lot of it.
             // g.InterpolationMode = InterpolationMode.NearestNeighbour;
-
+            
             for (int i = 0; i < Constants.kNumberOfChannels; ++i)
             {
                 if (mLayers[i].mBitmap != null)
                 {
+                    Bitmap a_map = mLayers[i].mBitmap;
+                    Rectangle to_draw = new Rectangle(0, 0, 
+                                                      a_map.Width * zoom, a_map.Height * zoom);
                     Console.WriteLine(String.Format("Paint {0}", i));
-                    g.DrawImage(mLayers[i].mBitmap, everywhere);
+                    g.DrawImage(mLayers[i].mBitmap, to_draw);
                     any = true;
                 }
             }

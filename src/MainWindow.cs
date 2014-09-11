@@ -3,6 +3,7 @@
 
 using System;
 using System.Windows.Forms;
+using System.Drawing;
 
 namespace yuv3
 {
@@ -12,7 +13,9 @@ namespace yuv3
         StatusBar mStatus;
         MenuStrip mMenu;
         FileInterfacePanel[] mFiles;
-        ToolBar mTools;
+        ToolStrip mTools;
+        ToolStripTextBox mZoomBox;
+        double mPixelsPerPoint;
 
         public DisplayYUVControl mDisplay;
         
@@ -49,6 +52,10 @@ namespace yuv3
             mAppState.SetMainWindow(this);
             mDisplay = new DisplayYUVControl(inAppState);
 
+            Graphics g = this.CreateGraphics();
+            mPixelsPerPoint = (double)g.DpiX / 72.0;
+            g.Dispose();
+
 
             AutoScroll = true;
 
@@ -73,6 +80,32 @@ namespace yuv3
                                                          Keys.Control | Keys.X));
             
 
+
+
+            mTools= new ToolStrip();
+            mTools.Anchor = AnchorStyles.Top;
+
+            ToolStripButton zPlus = new ToolStripButton();
+            zPlus.Text = "+";
+            zPlus.AutoSize = true;
+            mTools.Items.Add(zPlus);
+            zPlus.Click += new EventHandler(OnIncreaseZoom);
+
+            mZoomBox = new ToolStripTextBox();
+            mTools.Items.Add(mZoomBox);
+            mZoomBox.Text= "1";
+            mZoomBox.Width = (int)(3 * mZoomBox.Font.SizeInPoints * mPixelsPerPoint);
+            mZoomBox.TextChanged += new EventHandler(OnZoomChanged);
+            mZoomBox.KeyDown += new KeyEventHandler(OnZoomKeyDown);
+
+            ToolStripButton zMinus = new ToolStripButton();
+            zMinus.Text = "-";
+            zMinus.AutoSize = true;
+            zMinus.Click += new EventHandler(OnDecreaseZoom);
+            mTools.Items.Add(zMinus);
+
+            topFlow.Controls.Add(mTools);
+            
 
             SplitContainer topSplit = new SplitContainer();
             topSplit.Panel1.AutoScroll = true;
@@ -171,6 +204,46 @@ namespace yuv3
             Text = "YUV3";
         }
 
+        public void OnZoomChanged(Object sender, EventArgs e)
+        {
+            mZoomBox.ForeColor = System.Drawing.Color.Blue;
+        }
+
+        public void OnZoomKeyDown(Object sender, KeyEventArgs e)
+        {
+            int new_zoom;
+            if (e.KeyCode != Keys.Enter)
+            {
+                return;
+            }
+            if (int.TryParse(mZoomBox.Text, out new_zoom))
+            {
+                mAppState.Zoom = new_zoom;
+                mZoomBox.ForeColor = System.Drawing.Color.Black;
+            }
+            else 
+            {
+                mZoomBox.ForeColor = System.Drawing.Color.Gray;
+            }
+        }
+        
+        public void OnIncreaseZoom(Object sender, EventArgs e)
+        {
+            mAppState.Zoom = mAppState.Zoom + 1;
+            mZoomBox.ForeColor = System.Drawing.Color.Black;
+            mZoomBox.Text = mAppState.Zoom.ToString();
+        }
+
+        public void OnDecreaseZoom(Object sender, EventArgs e)
+        {
+            if (mAppState.Zoom > 0)
+            {
+                mAppState.Zoom = mAppState.Zoom -1;
+                mZoomBox.ForeColor = System.Drawing.Color.Black;
+                mZoomBox.Text = mAppState.Zoom.ToString();
+            }
+        }
+        
         public void ClearRegister(int regno, int which)
         {
             mFiles[which].SetRegister(regno, false);
