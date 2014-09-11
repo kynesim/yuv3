@@ -169,8 +169,8 @@ namespace yuv3
                                      mPictureBytes[uptr],
                                  mPictureBytes[vptr]);
                         
-                        ++uptr;
-                        ++vptr;
+                        uptr += 2;
+                        vptr += 2;
                     }
                     if ((j&1) == 0)
                     {
@@ -241,6 +241,39 @@ namespace yuv3
                 }
                 return false;
             }
+
+        public void QueryYUV(int x, int y, out int cy, out int cu, out int cv)
+        {
+            int yp = -1, up = -1, vp = -1;
+            switch (mFormat)
+            {
+            case YUVFileFormat.YUV420I:
+                yp = (y * mHeight) + x;
+                up = ((mHeight + (y/2)) * mWidth) + (x&~1);
+                vp = up +1;
+                break;
+            case YUVFileFormat.YUV420P:
+            {
+                int chroma = (mHeight * mWidth);
+                yp  = (y *mHeight) + x;
+                up = chroma + ((mWidth / 2) * (y/2)) + x;
+                vp = chroma + ((mWidth / 2) * (mHeight / 2)) + ((mWidth/2) * (y/2)) + x;
+                break;
+            }
+            default:
+                break;
+            }
+            if (yp >= 0 && up >= 0 && vp >= 0)
+            {
+                cy = mPictureBytes[yp];
+                cu = mPictureBytes[up];
+                cv = mPictureBytes[vp];
+            }
+            else
+            {
+                cy = cu= cv = -1;
+            }
+        }
 
         public bool EnsureData()
         {

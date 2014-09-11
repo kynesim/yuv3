@@ -18,6 +18,8 @@ namespace yuv3
         ToolStripTextBox mZoomBox;
         ToolStripStatusLabel mStatus;
         double mPixelsPerPoint;
+        ToolStripButton mSubtractButton;
+        ToolStripComboBox mTrackerCombo;
 
         Assembly _assembly;
         Stream _bgimageStream;
@@ -38,6 +40,11 @@ namespace yuv3
         }
 
         public void Log(String s)
+        {
+            SetStatus(s, false);
+        }
+
+        public void MouseNotify(String s)
         {
             SetStatus(s, false);
         }
@@ -69,7 +76,7 @@ namespace yuv3
 
             mAppState = inAppState;
             mAppState.SetMainWindow(this);
-            mDisplay = new DisplayYUVControl(inAppState);
+            mDisplay = new DisplayYUVControl(inAppState, this);
 
             Graphics g = this.CreateGraphics();
             mPixelsPerPoint = (double)g.DpiX / 72.0;
@@ -108,6 +115,11 @@ namespace yuv3
 
             mTools= new ToolStrip();
 
+            ToolStripLabel l = new ToolStripLabel();
+            l.Text = "Zoom";
+            l.AutoSize = true;
+            mTools.Items.Add(l);
+
             ToolStripButton zPlus = new ToolStripButton();
             zPlus.Text = "+";
             zPlus.AutoSize = true;
@@ -127,6 +139,40 @@ namespace yuv3
             zMinus.Click += new EventHandler(OnDecreaseZoom);
             mTools.Items.Add(zMinus);
            
+            mTools.Items.Add(new ToolStripSeparator());
+
+            l = new ToolStripLabel();
+            l.AutoSize = true;
+            l.Text = "Track";
+            mTools.Items.Add(l);
+
+            mTrackerCombo = new ToolStripComboBox();
+
+            {
+                string[] items = new string[Constants.kNumberOfChannels];
+
+                for (int i =0 ;i < items.Length; ++i)
+                {
+                    items[i] = String.Format("File#{0}", i);                
+                }
+
+                mTrackerCombo.Items.AddRange(items);
+            }
+            mTrackerCombo.DropDownStyle = ComboBoxStyle.DropDownList;
+            mTrackerCombo.SelectedIndexChanged +=
+                new EventHandler(TrackerIndexChanged);
+
+            mTools.Items.Add(mTrackerCombo);
+
+            mTools.Items.Add(new ToolStripSeparator());
+
+            mSubtractButton = new ToolStripButton();
+            mSubtractButton.Text = "A-B";
+            mSubtractButton.AutoSize = true;
+            mSubtractButton.CheckOnClick = true;
+            mSubtractButton.CheckedChanged += new EventHandler(OnSubtractChanged);
+            mTools.Items.Add(mSubtractButton);
+
 
             SplitContainer topSplit = new SplitContainer();
 
@@ -178,7 +224,10 @@ namespace yuv3
 
             Width = 600;
             Height = 1000;
-
+            
+            mAppState.ToMeasure = 0;
+            mTrackerCombo.SelectedIndex = 0;
+            
             topSplit.SplitterDistance = paramPanel.Width;
             topSplit.FixedPanel = FixedPanel.Panel1;
 
@@ -186,6 +235,12 @@ namespace yuv3
             SetStatus("Idle", false);
 
             Text = "YUV3";
+        }
+
+        public void OnSubtractChanged(Object sender, EventArgs e)
+        {
+            Console.WriteLine("Fish");
+
         }
 
         public void SetVisible(int which, bool is_visible)
@@ -200,12 +255,12 @@ namespace yuv3
 
         public void OnZoomKeyDown(Object sender, KeyEventArgs e)
         {
-            int new_zoom;
+            double new_zoom;
             if (e.KeyCode != Keys.Enter)
             {
                 return;
             }
-            if (int.TryParse(mZoomBox.Text, out new_zoom))
+            if (double.TryParse(mZoomBox.Text, out new_zoom))
             {
                 mAppState.Zoom = new_zoom;
                 mZoomBox.ForeColor = System.Drawing.Color.Black;
@@ -218,16 +273,21 @@ namespace yuv3
         
         public void OnIncreaseZoom(Object sender, EventArgs e)
         {
-            mAppState.Zoom = mAppState.Zoom + 1;
+            mAppState.Zoom = mAppState.Zoom + 0.2;
             mZoomBox.ForeColor = System.Drawing.Color.Black;
             mZoomBox.Text = mAppState.Zoom.ToString();
+        }
+
+        public void TrackerIndexChanged(Object sender, EventArgs e)
+        {
+            mAppState.ToMeasure = mTrackerCombo.SelectedIndex;
         }
 
         public void OnDecreaseZoom(Object sender, EventArgs e)
         {
             if (mAppState.Zoom > 0)
             {
-                mAppState.Zoom = mAppState.Zoom -1;
+                mAppState.Zoom = mAppState.Zoom - 0.2;
                 mZoomBox.ForeColor = System.Drawing.Color.Black;
                 mZoomBox.Text = mAppState.Zoom.ToString();
             }

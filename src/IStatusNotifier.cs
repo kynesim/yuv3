@@ -9,5 +9,6 @@ namespace yuv3
     {
         void Warning(string s, bool dialog);
         void Log(String s);
+        void MouseNotify(String s);
    }
 }

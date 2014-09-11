@@ -16,6 +16,11 @@ namespace yuv3
         {
             Console.WriteLine(s);
         }
+
+        public void MouseNotify(String s)
+        {
+            // On no you don't.
+        }
     }
 }
 

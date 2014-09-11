@@ -30,11 +30,13 @@ namespace yuv3
         // If non-Null, we are displaying a math function and this is it.
         public Bitmap mMath;
         public Size renderSize;
+        public IStatusNotifier mNotifier;
 
-        public DisplayYUVControl(AppState in_as)
+        public DisplayYUVControl(AppState in_as, IStatusNotifier inNotifier)
         {
             int i;
             mAppState = in_as;
+            mNotifier = inNotifier;
             mLayers = new LayerInfo[Constants.kNumberOfChannels];
             for (i =0 ;i < Constants.kNumberOfChannels; ++i)
             {
@@ -42,6 +44,8 @@ namespace yuv3
             }
             mMath = null;
             Paint += new PaintEventHandler(Render);
+            MouseLeave += new EventHandler(OnMouseLeave);
+            MouseMove += new MouseEventHandler(OnMouseMove);
             Size = new Size(320, 240);
         }
 
@@ -141,13 +145,13 @@ namespace yuv3
             /* Work out the new size for this control */
             // We never claim to be any smaller than this.
             int max_w = 320, max_h = 240;
-            int z = mAppState.Zoom;
+            double z = mAppState.Zoom;
             for (int i =0 ;i < mLayers.Length; ++i)
             {
                 if (mLayers[i].mBitmap != null)
                 {
-                    int w = mLayers[i].mBitmap.Width * z;
-                    int h = mLayers[i].mBitmap.Height * z;
+                    int w = (int)(mLayers[i].mBitmap.Width * z);
+                    int h = (int)(mLayers[i].mBitmap.Height * z);
                     if (w > max_w)
                     {
                         max_w =w;
@@ -168,13 +172,41 @@ namespace yuv3
             return this.renderSize;
         }
 
+        void OnMouseLeave(Object sender, EventArgs e)
+        {
+            mNotifier.MouseNotify("");
+        }
+
+        void OnMouseMove(Object sender, MouseEventArgs e)
+        {
+            if (mAppState != null && mAppState.Zoom > 0)
+            {
+                int pix_x = (int)(e.X / mAppState.Zoom);
+                int pix_y = (int)(e.Y / mAppState.Zoom);
+                int m = mAppState.ToMeasure;
+                if (m >= 0 && pix_x >= 0 && pix_y >= 0)
+                {
+                    Bitmap bm = mLayers[m].mBitmap;
+                    if (bm != null && pix_x < bm.Width && pix_y < bm.Height)
+                    {
+                        Color rgb = bm.GetPixel(pix_x, pix_y);
+                        int cy, cu, cv;
+                        mAppState.QueryYUV(m,pix_x,pix_y, out cy, out cu, out cv);
+                        mNotifier.MouseNotify(String.Format("({0}, {1}) R = {2} G = {3} B = {4} Y = {5} U = {6} V = {7}",
+                                                            pix_x, pix_y, 
+                                                            rgb.R, rgb.G, rgb.B, cy, cu, cv));
+                    }
+                }
+            }
+        }
+
         void Render(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
             bool any = false;
-            int zoom = mAppState.Zoom;
-            Rectangle everywhere = new Rectangle(0, 0, zoom * this.renderSize.Width, 
-                                                 zoom * this.renderSize.Height);
+            double zoom = mAppState.Zoom;
+            Rectangle everywhere = new Rectangle(0, 0, (int)(zoom * this.renderSize.Width), 
+                                                 (int)(zoom * this.renderSize.Height));
 
             // Speed up scaling -we do a lot of it.
             // g.InterpolationMode = InterpolationMode.NearestNeighbour;
@@ -185,7 +217,8 @@ namespace yuv3
                 {
                     Bitmap a_map = mLayers[i].mBitmap;
                     Rectangle to_draw = new Rectangle(0, 0, 
-                                                      a_map.Width * zoom, a_map.Height * zoom);
+                                                      (int)(a_map.Width * zoom), 
+                                                      (int)(a_map.Height * zoom));
                     Console.WriteLine(String.Format("Paint {0}", i));
                     g.DrawImage(mLayers[i].mBitmap, to_draw);
                     any = true;
