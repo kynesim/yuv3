@@ -13,10 +13,13 @@ namespace yuv3
         int mWhich;
         TextBox mDimBox;
         TextBox mFrameBox;
+        TextBox mIDBox;
+        TextBox mOffsetBox, mSumBox;
         Button mFileButton;
         AppState mAppState;
         ComboBox mFormat;
-        int mW, mH, mFrame;
+        int mW, mH;
+        int mFrame;
         YUVFileFormat mF;
         CheckBox mVisibleCheckBox;
         CheckBox[] mRegisterChecks;
@@ -177,6 +180,8 @@ namespace yuv3
             inner.Controls.Add(f);
 
             FlowLayoutPanel frameSpinner = new FlowLayoutPanel();
+            frameSpinner.AutoSize = true;
+            frameSpinner.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             Button frame_up = new Button(); 
             frame_up.Text = "+";
             frame_up.Click += new EventHandler(OnFrameUp);
@@ -187,17 +192,57 @@ namespace yuv3
             frame_down.Click += new EventHandler(OnFrameDown);
             mFrameBox = new TextBox();
             mFrameBox.Text = "0";
-            mFrameBox.Width = (int)(mPixelsPerPoint * mFrameBox.Font.SizeInPoints * 8);
+            mFrameBox.Width = (int)(mPixelsPerPoint * mFrameBox.Font.SizeInPoints * 4);
             mFrameBox.TextChanged += new EventHandler(OnFrameChanged);
             mFrameBox.KeyDown += new KeyEventHandler(OnFrameKeyDown);
-                
             
             frameSpinner.Controls.Add(frame_down);           
             frameSpinner.Controls.Add(mFrameBox);
             frameSpinner.Controls.Add(frame_up);           
 
-
             inner.Controls.Add(frameSpinner);
+
+
+            f = new Label();
+            f.Text = "ID: ";
+            f.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            inner.Controls.Add(f);
+
+            FlowLayoutPanel idFlow = new FlowLayoutPanel();
+            idFlow.AutoSize = true;
+            idFlow.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+
+            mIDBox = new TextBox();
+            mIDBox.Width = (int)(mPixelsPerPoint * mFrameBox.Font.SizeInPoints * 8);
+            mIDBox.TextChanged += new EventHandler(OnIDChanged);
+            mIDBox.KeyDown += new KeyEventHandler(OnIDKeyDown);
+            idFlow.Controls.Add(mIDBox);
+            
+            f = new Label();
+            f.Text = "@";
+            f.Padding = new Padding(0, 4, 0, 0);
+            f.AutoSize = true;
+            idFlow.Controls.Add(f);
+
+            mOffsetBox = new TextBox();
+            mOffsetBox.Width = (int)(mPixelsPerPoint * mFrameBox.Font.SizeInPoints * 8);
+            mOffsetBox.ReadOnly = true;
+            idFlow.Controls.Add(mOffsetBox);
+
+            inner.Controls.Add(idFlow);
+            
+
+            f = new Label();
+            f.Text = "Sum: ";
+            f.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            inner.Controls.Add(f);
+
+            mSumBox = new TextBox();
+            mSumBox.Width = (int)(mPixelsPerPoint * mFrameBox.Font.SizeInPoints * 8);
+            mSumBox.ReadOnly = true;
+            inner.Controls.Add(mSumBox);
+
+
             this.Controls.Add(title);
             this.Controls.Add(inner);
         }
@@ -299,6 +344,11 @@ namespace yuv3
             }
         }
 
+        void OnIDChanged(Object sender, EventArgs e)
+        {
+            mIDBox.ForeColor = System.Drawing.Color.Blue;
+        }
+
         void OnFrameChanged(Object sender, EventArgs e)
         {
             mFrameBox.ForeColor = System.Drawing.Color.Blue;
@@ -310,17 +360,48 @@ namespace yuv3
             mDimBox.ForeColor = System.Drawing.Color.Blue;
         }
 
+        void OnIDKeyDown(Object sender, KeyEventArgs e)
+        {
+            uint new_id;
+
+            if (e.KeyCode != Keys.Enter)
+            {
+                return;
+            }
+            if (Utils.TryParseNumber(mIDBox.Text, out new_id))
+            {
+                uint frame_number;
+                bool ok;
+                ok = mAppState.SeekID(mWhich, mFrame, new_id, out frame_number);
+                if (ok)
+                {
+                    mIDBox.ForeColor = System.Drawing.Color.Black;
+                    /* And go there !*/
+                    mFrame = (int)frame_number;
+                    mAppState.UserSet(mWhich, mW, mH, mFrame, mF);            
+                }
+                else
+                {
+                    mIDBox.ForeColor = System.Drawing.Color.Gray;
+                }
+            }
+            else 
+            {
+                mIDBox.ForeColor = System.Drawing.Color.Red;
+            }
+        }
+
         void OnFrameKeyDown(Object sender, KeyEventArgs e)
         {
-            int new_frame;
+            uint new_frame;
             if (e.KeyCode != Keys.Enter)
             {
                 return;
             }
             
-            if (int.TryParse(mFrameBox.Text, out new_frame))
+            if (Utils.TryParseNumber(mFrameBox.Text, out new_frame))
             {
-                mFrame = new_frame;
+                mFrame = (int)new_frame;
                 mAppState.UserSet(mWhich, mW, mH, mFrame, mF);
                 mFrameBox.ForeColor = System.Drawing.Color.Black;
             }
@@ -456,7 +537,25 @@ namespace yuv3
             }
         }
 
+        public void SetFrameData(int frame, bool has_fid, uint frame_id, ulong offset, uint checksum)
+        {
+            if (has_fid)
+            {
+                mIDBox.Text = "0x" + frame_id.ToString("x8");
+                mIDBox.ForeColor = System.Drawing.Color.Purple;
+            }
+            else
+            {
+                mIDBox.Text = "(none)";
+                mIDBox.ForeColor = System.Drawing.Color.Gray;
+            }
+            mOffsetBox.Text = offset.ToString();
+            mSumBox.Text = "0x" + checksum.ToString("x8");
 
+
+            mFrameBox.Text = frame.ToString();
+            mFrameBox.ForeColor = System.Drawing.Color.Black;
+        }
 
     }
     

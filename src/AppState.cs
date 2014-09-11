@@ -70,12 +70,35 @@ namespace yuv3
             {
                 mFiles[which].Set(w,h, frame, fmt);
                 mW.Display.UpdateLayer(which, mFiles[which]);
+                UpdateInterface(which);
+            }
+        }
+        
+        
+        public bool SeekID(int which, int from_frame, uint id, out uint frame_number)
+        {
+            if (mFiles[which] != null)
+            {
+                uint cur_fid;
+                bool ok;
+                ok = mFiles[which].GetFrameID(out cur_fid);
+                if (ok && cur_fid == id)
+                {
+                    ++from_frame;
+                }
+                return mFiles[which].SeekID(id, from_frame, out frame_number);
+            }
+            else
+            {
+                frame_number = 0xFFFFFFFF;
+                return false;
             }
         }
 
         public void SetVisible(int layer, bool visible)
         {
             mW.Display.UpdateLayer(layer, (visible ? mFiles[layer] : null));
+            UpdateInterface(layer);
         }
 
         public void SetMainWindow(MainWindow in_mw) 
@@ -93,6 +116,21 @@ namespace yuv3
             mW.SetVisible(which, true);
             /* Now reconstruct the display */
             mW.Display.UpdateLayer(which, mFiles[which]);
+            UpdateInterface(which);
+        }
+        
+        public void UpdateInterface(int which)
+        {
+            uint new_fid;
+            bool has_fid;
+
+            if (mW != null && mFiles[which] != null)
+            {
+                has_fid = mFiles[which].GetFrameID(out new_fid);
+                mW.SetFrameData(which, mFiles[which].Frame,
+                                has_fid, new_fid, (ulong)mFiles[which].FileOffsetOfPicture, 
+                                mFiles[which].Checksum);
+            }
         }
 
         public void ReplaceNotifier(IStatusNotifier isn)

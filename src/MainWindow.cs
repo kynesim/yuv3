@@ -303,6 +303,14 @@ namespace yuv3
             Close();
         }
 
+        public void SetFrameData(int which, int frame, bool has_fid, uint frame_id, ulong offset, uint sum)
+        {
+            if (mFiles[which] != null)
+            {
+                mFiles[which].SetFrameData(frame, has_fid, frame_id, offset, sum);
+            }
+        }
+
 
     }
 }

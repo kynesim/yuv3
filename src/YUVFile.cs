@@ -31,6 +31,14 @@ namespace yuv3
         int mPictureOffset;
         IStatusNotifier mNotifier;
 
+        public int Frame
+        {
+            get
+            {
+                return mFrame;
+            }
+        }
+
         public bool Loaded
         {
             get 
@@ -39,6 +47,7 @@ namespace yuv3
             }
         }
 
+        
         public int FileOffsetOfPicture
         {
             get
@@ -67,11 +76,11 @@ namespace yuv3
             }
         }
 
-        public int Checksum
+        public uint Checksum
         {
             get
             {
-                int sum = 0;
+                uint sum = 0;
                 if (mPictureBytes != null)
                 {
                     for (int i = 0; i <mPictureBytes.Length; ++i)
@@ -322,6 +331,54 @@ namespace yuv3
             }
         }
 
+        public uint IDFromBytes(byte[] pic_bytes)
+        {
+            return ((uint)pic_bytes[0] << 24) |
+                ((uint)pic_bytes[1] << 16) |
+                ((uint)pic_bytes[2] << 8) |
+                ((uint)pic_bytes[3]);
+        }
+
+        public bool SeekID(uint id, int start_at, out uint frame_number)
+        {
+            if (mStream == null || !mLoaded)
+            {
+                // Not loaded.
+                frame_number = 0xFFFFFFFF;
+                return false;
+            }
+            // Otherwise.
+            byte[] header = new byte[16];
+            int frame_no = start_at;
+            try 
+            {
+                while (true)
+                {
+                    long where = BytesPerPicture * frame_no;
+                    mNotifier.Log(String.Format("Seeking id 0x{0:x8} @ frame = {1}, offset = {2}", id, frame_no,
+                                                (int)where));
+                    mStream.Seek(BytesPerPicture * frame_no, SeekOrigin.Begin);
+                    mStream.Read(header, 0, 16);
+                    uint cur_id = IDFromBytes(header);
+                    if (cur_id == id)
+                    {
+                        frame_number = (uint)frame_no;
+                        mNotifier.Log(String.Format("id 0x{0:x8} found at frame {1}, offset {2}", id, frame_no,
+                                                    (int)where));
+                        return true;
+                    }
+                    ++frame_no;
+                }
+            }
+            catch 
+            {
+                mNotifier.Log(String.Format("Failed to find id 0x{0:x8} in frames 0..{1}", 
+                                            id, frame_no-1));
+                frame_number = 0xFFFFFFFF;
+                return false;
+            }
+        }
+
         public bool EnsureData()
         {
             if (FileOffsetOfPicture < 0 || mStream == null || !mLoaded)
@@ -426,6 +483,21 @@ namespace yuv3
             mLoaded = false;
             mNotifier = inNotifier;
         }
+
+        public bool GetFrameID(out uint frame_id)
+        {
+            if (mPictureBytes != null && mPictureBytes.Length >= Constants.kYUVHeaderBytes)
+            {
+                frame_id = IDFromBytes(mPictureBytes);
+                return true;
+            }
+            else
+            {
+                frame_id = 0xFFFFFFFF;
+                return false;
+            }
+        }
+
     }
 }
 

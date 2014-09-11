@@ -5,6 +5,8 @@ namespace yuv3
 {
     public class Constants
     {        
+        public const int kYUVHeaderBytes = 16;
+
         public const int kNumberOfChannels = 4;
 
 

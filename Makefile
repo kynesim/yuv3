@@ -8,7 +8,7 @@ BINDIR := bin
 CSFLAGS := /unsafe
 SRCS := MainWindow.cs yuv3.cs AppState.cs DisplayYUVControl.cs YUVFile.cs \
 	Constants.cs FileInterfacePanel.cs IStatusNotifier.cs \
-	ConsoleStatusNotifier.cs
+	ConsoleStatusNotifier.cs Utils.cs
 RSRC_OPTS := -resource:rsrc/bg_1.png,MainBackground.png
 LOCATED_SRCS := $(SRCS:%=src/%)
 
