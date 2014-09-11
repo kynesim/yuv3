@@ -205,7 +205,6 @@ namespace yuv3
 
         public void SetNewFormat(YUVFileFormat ff)
         {
-            Console.WriteLine("ff = {0}",(int)ff);
             switch (ff)
             {
             case YUVFileFormat.YUV420I: mFormat.SelectedIndex = 0;
@@ -377,11 +376,11 @@ namespace yuv3
             {
                 return YUVFileFormat.YUV420P;
             }
-            else if (ext == "yuyv")
+            else if (ext == "yuyv" || ext == "yuyv422")
             {
                 return YUVFileFormat.YUYV;
             }
-            else if (ext == "yvyu")
+            else if (ext == "yvyu" || ext == "yvyu422")
             {
                 return YUVFileFormat.YVYU;
             }

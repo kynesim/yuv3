@@ -182,7 +182,35 @@ namespace yuv3
             }
 
 
-         unsafe bool Convert420P(System.Drawing.Imaging.BitmapData ioData, int alpha)
+        unsafe bool ConvertYUYV(System.Drawing.Imaging.BitmapData ioData, int alpha)
+            {
+                byte *out_line = (byte *)ioData.Scan0.ToPointer();
+                int stride = ioData.Stride;
+
+                Parallel.For(0, mHeight, (j) =>
+                {
+                    // This is YUYV.. 
+                    int uptr = (j * (mWidth *2));
+                    byte *outp = out_line + (j * stride);
+                    for (int i =0 ;i < mWidth; i += 2, outp += 8, uptr += 4)
+                    {
+                        // First pixel.
+                        YUVToRGB(outp, alpha,
+                                 mPictureBytes[uptr], // Y
+                                 mPictureBytes[uptr + 1], // U
+                                 mPictureBytes[uptr + 3] // V
+                            );
+                        YUVToRGB(outp + 4, alpha,
+                                 mPictureBytes[uptr + 2], // Y2
+                                 mPictureBytes[uptr + 1], // U
+                                 mPictureBytes[uptr + 3] // V
+                            );
+                    }
+                });
+                return true;
+            }
+
+        unsafe bool Convert420P(System.Drawing.Imaging.BitmapData ioData, int alpha)
             {                    
                 int base_uptr = (mWidth * mHeight);
                 int base_vptr = base_uptr + ((mWidth/2) * (mHeight/2));
@@ -236,6 +264,8 @@ namespace yuv3
                     return Convert420I(ioData, alpha);
                 case YUVFileFormat.YUV420P:
                     return Convert420P(ioData, alpha);
+                case YUVFileFormat.YUYV:
+                    return ConvertYUYV(ioData, alpha);
                 default:
                     break;
                 }
@@ -248,16 +278,33 @@ namespace yuv3
             switch (mFormat)
             {
             case YUVFileFormat.YUV420I:
-                yp = (y * mHeight) + x;
+                yp = (y * mWidth) + x;
                 up = ((mHeight + (y/2)) * mWidth) + (x&~1);
                 vp = up +1;
                 break;
             case YUVFileFormat.YUV420P:
             {
                 int chroma = (mHeight * mWidth);
-                yp  = (y *mHeight) + x;
+                yp  = (y *mWidth) + x;
                 up = chroma + ((mWidth / 2) * (y/2)) + x;
                 vp = chroma + ((mWidth / 2) * (mHeight / 2)) + ((mWidth/2) * (y/2)) + x;
+                break;
+            }
+            case YUVFileFormat.YUYV:
+            {
+                yp = (y * mWidth * 2) + (x * 2);
+                if ((x & 1) != 0)
+                {
+                    // Odd pixel - U is behind.
+                    up = yp  - 1;
+                    vp = yp + 1;
+                }
+                else
+                {
+                    // Even pixel - U is ahead.
+                    up = yp + 1;
+                    vp = yp + 3;
+                }
                 break;
             }
             default:
