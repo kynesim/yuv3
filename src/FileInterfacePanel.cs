@@ -404,6 +404,16 @@ namespace yuv3
         void OnFrameKeyDown(Object sender, KeyEventArgs e)
         {
             uint new_frame;
+            if (e.KeyCode == Keys.Left)
+            {
+                OnFrameDown(sender, e);
+                return;
+            }
+            if (e.KeyCode == Keys.Right)
+            {
+                OnFrameUp(sender, e);
+                return;
+            }
             if (e.KeyCode != Keys.Enter)
             {
                 return;
