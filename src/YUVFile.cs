@@ -335,8 +335,8 @@ namespace yuv3
             {
                 int chroma = (mHeight * mWidth);
                 yp  = (y *mWidth) + x;
-                up = chroma + ((mWidth / 2) * (y/2)) + x;
-                vp = chroma + ((mWidth / 2) * (mHeight / 2)) + ((mWidth/2) * (y/2)) + x;
+                up = chroma + ((mWidth / 2) * (y/2)) + (x/2);
+                vp = chroma + ((mWidth / 2) * (mHeight / 2)) + ((mWidth/2) * (y/2)) + (x/2);
                 break;
             }
             case YUVFileFormat.YUYV:
