@@ -31,25 +31,36 @@ namespace yuv3
 
                 Parallel.For(0, inmap.Height, (j) =>
                 {
-                    for (int z = 0; z < zoom; ++z)
+                    byte *in_line = pin + (j * stride_in);
+                    byte *orig_out_line = pout + ((j*zoom) * stride_out);
+                    byte *out_line = orig_out_line;
+
+                    // First line the hard way.
+                    for (int i =0 ;i < w_in; ++i, in_line += 4)
                     {
-                        byte *in_line = pin + (j * stride_in);
-                        byte *out_line = pout + (((j*zoom)+z) * stride_out);
-                        for (int i =0 ;i < w_in; ++i, in_line += 4)
+                        byte a = in_line[0];
+                        byte b = in_line[1];
+                        byte c = in_line[2];
+                        byte d = in_line[3];
+                        for (int x = 0; x < zoom; ++x, out_line += 4)
                         {
-                            byte a = in_line[0];
-                            byte b = in_line[1];
-                            byte c = in_line[2];
-                            byte d = in_line[3];
-                            for (int x = 0; x < zoom; ++x, out_line += 4)
-                            {
-                                out_line[0] =a;
-                                out_line[1] = b;
-                                out_line[2] = c;
-                                out_line[3] = d;
-                            }
+                            out_line[0] =a;
+                            out_line[1] = b;
+                            out_line[2] = c;
+                            out_line[3] = d;
                         }
                     }
+                    
+                    // Subsequent lines can just be copied.
+                    for (int z = 1; z < zoom; ++z, out_line += stride_out)
+                    {
+                        for (int x = 0; x < (zoom * w_in); ++x)
+                        {
+                            out_line[x] = orig_out_line[x];
+                        }
+                    }
+
+
                 });
                 inmap.UnlockBits(inData);
                 result.UnlockBits(outData);
