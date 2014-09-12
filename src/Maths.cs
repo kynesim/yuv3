@@ -118,16 +118,16 @@ namespace yuv3
             int po = PixOffset(x,y);
             if (x > mWidth ||  y > mHeight)
             {
-                return String.Format("({0}, {1}) Out of range", x, y);
+                return String.Format("Out of range");
             }
 
             switch (mOp)
             {
             case MathsOperation.None:
-                return String.Format("(maths: no operation @ {0}, {1}", x,y );
+                return String.Format("No operation");
             case MathsOperation.SubtractAB:
             {
-                return String.Format("({0}, {1}) -> Y {2} U {3} V {4} [ {5}-{6}, {7}-{8}, {9}-{10} ]",
+                return String.Format("Y {2} U {3} V {4} [ {5}-{6}, {7}-{8}, {9}-{10} ]",
                                      x,y,
                                      mPixels[ResultIdx,po], mPixels[ResultIdx,po+1], mPixels[ResultIdx,po+2],
                                      mPixels[OpAIdx,po], mPixels[OpBIdx,po], 

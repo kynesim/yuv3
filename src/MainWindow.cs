@@ -20,7 +20,10 @@ namespace yuv3
         double mPixelsPerPoint;
         ToolStripButton mSubtractButton;
         ToolStripComboBox mTrackerCombo;
-
+        ToolStripComboBox mFFCombo;
+        ToolStripButton mMBGrid, mBlockGrid, mPixelGrid;
+        ToolStripButton mGridColor;
+        ToolStripLabel mGridColorLabel;
         Assembly _assembly;
         Stream _bgimageStream;
 
@@ -172,7 +175,54 @@ namespace yuv3
             mSubtractButton.CheckOnClick = true;
             mSubtractButton.CheckedChanged += new EventHandler(OnSubtractChanged);
             mTools.Items.Add(mSubtractButton);
+            
+            mTools.Items.Add(new ToolStripSeparator());
+            
+            mMBGrid = new ToolStripButton();
+            mMBGrid.CheckOnClick = true;
+            mMBGrid.Text = "MB";
+            mMBGrid.AutoSize = true;
+            mMBGrid.CheckedChanged += new EventHandler(GridButtonsChanged);
+            mTools.Items.Add(mMBGrid);
 
+            mBlockGrid = new ToolStripButton();
+            mBlockGrid.CheckOnClick = true;
+            mBlockGrid.Text = "Block";
+            mBlockGrid.AutoSize = true;
+            mBlockGrid.CheckedChanged += new EventHandler(GridButtonsChanged);
+            mTools.Items.Add(mBlockGrid);
+
+            mPixelGrid = new ToolStripButton();
+            mPixelGrid.CheckOnClick = true;
+            mPixelGrid.Text = "Pixels";
+            mPixelGrid.AutoSize = true;
+            mPixelGrid.CheckedChanged += new EventHandler(GridButtonsChanged);
+            mTools.Items.Add(mPixelGrid);
+
+            mFFCombo = new ToolStripComboBox();            
+            mFFCombo.Items.AddRange(new string[] { "Frame", "TopField", "BottomField" });
+            mFFCombo.DropDownStyle = ComboBoxStyle.DropDownList;
+            mFFCombo.SelectedIndex = 0;
+            mFFCombo.SelectedIndexChanged += new EventHandler(FFModeChanged);
+            mTools.Items.Add(mFFCombo);
+
+
+            mGridColor = new ToolStripButton();
+            mGridColor.Text = "Color";
+            mGridColor.AutoSize = true;
+            mGridColor.Click += new EventHandler(GridColorClicked);
+            mTools.Items.Add(mGridColor);
+
+            mGridColorLabel = new ToolStripLabel();
+            mGridColorLabel.Text = " ";
+            mGridColorLabel.Click += new EventHandler(GridColorClicked);
+            mTools.Items.Add(mGridColorLabel);
+
+            ToolStripButton flip = new ToolStripButton();
+            flip.Text = "[Flip]";
+            flip.AutoSize = true;
+            flip.Click += new EventHandler(GridColorFlip);
+            mTools.Items.Add(flip);
 
             SplitContainer topSplit = new SplitContainer();
 
@@ -232,10 +282,35 @@ namespace yuv3
             topSplit.FixedPanel = FixedPanel.Panel1;
 
             mAppState.ReplaceNotifier(this);
+            SetGridColor(Color.FromArgb(255, Color.Black));
             SetStatus("Idle", false);
 
             Text = "YUV3";
         }
+
+        public void SetGridColor(Color c)
+        {
+            mGridColorLabel.BackColor = c;
+            Display.SetGridColor(c);
+        }
+
+        public void GridColorFlip(Object sender, EventArgs e)
+        {
+            Color x = mGridColorLabel.BackColor;
+            SetGridColor(Color.FromArgb(255, 255-x.R, 255-x.G, 255-x.B));
+        }
+
+        public void GridColorClicked(Object sender, EventArgs e)
+        {
+            ColorDialog cd = new ColorDialog();
+            cd.AllowFullOpen = false;
+            cd.Color = mGridColorLabel.BackColor;
+            if (cd.ShowDialog() == DialogResult.OK)
+            {
+                SetGridColor(cd.Color);
+            }
+        }
+        
 
         public void SetOperation(MathsOperation op)
         {
@@ -296,6 +371,27 @@ namespace yuv3
             mZoomBox.Text = mAppState.Zoom.ToString();
         }
 
+        public void FFModeChanged(Object sender, EventArgs e)
+        {
+            FrameFieldMode ff = FrameFieldMode.FrameField;
+            switch (mFFCombo.SelectedIndex)
+            {
+            case 0: ff = FrameFieldMode.FrameField; break;
+            case 1: ff = FrameFieldMode.MBAFF; break;
+            default: break;
+            }
+            Display.SetFFMode(ff);
+        }
+
+        public void GridButtonsChanged(Object sender, EventArgs e)
+        {
+            Display.SetGridMode(
+                mMBGrid.Checked,
+                mBlockGrid.Checked,
+                mPixelGrid.Checked);
+        }
+
+
         public void TrackerIndexChanged(Object sender, EventArgs e)
         {
             mAppState.ToMeasure = mTrackerCombo.SelectedIndex;
@@ -326,6 +422,20 @@ namespace yuv3
             if (mFiles[which] != null)
             {
                 mFiles[which].SetFrameData(frame, has_fid, frame_id, offset, sum);
+            }
+        }
+
+        public void SetIsMaths(bool is_maths)
+        {
+            if (is_maths)
+            {
+                mTrackerCombo.SelectedText = "(maths mode)";
+                mTrackerCombo.Enabled = false;
+            }
+            else
+            {
+                mTrackerCombo.SelectedIndex = mTrackerCombo.SelectedIndex;
+                mTrackerCombo.Enabled = true;
             }
         }
 

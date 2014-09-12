@@ -192,6 +192,11 @@ namespace yuv3
             }
         }
 
+        public void SetIsMaths(bool is_maths)
+        {
+            mW.SetIsMaths(is_maths);
+        }
+        
     }
 
 

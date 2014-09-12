@@ -5,10 +5,20 @@ using System;
 using System.Windows.Forms;
 using System.Drawing.Imaging;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Threading.Tasks;
 
 namespace yuv3
 {
+
+    public enum FrameFieldMode
+    {
+        FrameField,
+        MBAFF
+    }
+
+
+
     public class LayerInfo
     {
         public Bitmap mBitmap;
@@ -22,7 +32,7 @@ namespace yuv3
         }
     }
 
-    public class DisplayYUVControl : ScrollableControl
+    public class DisplayYUVControl : Control
     {
         public AppState mAppState;
         // Layers, in order.
@@ -31,6 +41,9 @@ namespace yuv3
         public Maths mMaths;
         public Size renderSize;
         public IStatusNotifier mNotifier;
+        public bool mMBGrid, mBlockGrid, mPixelGrid;
+        public FrameFieldMode mFF;
+        public Color mGridColor;
 
         public MathsOperation MathsOperation
         {
@@ -50,15 +63,56 @@ namespace yuv3
             mAppState = in_as;
             mNotifier = inNotifier;
             mLayers = new LayerInfo[Constants.kNumberOfChannels];
+            mMBGrid = false;
+            mBlockGrid = false;
+            mPixelGrid = false;
+            
+            mFF = FrameFieldMode.FrameField;
             for (i =0 ;i < Constants.kNumberOfChannels; ++i)
             {
                 mLayers[i] = new LayerInfo();
             }
             mMaths = new Maths(in_as, inNotifier);
+            mGridColor = Color.FromArgb(255, Color.Black);
             Paint += new PaintEventHandler(Render);
             MouseLeave += new EventHandler(OnMouseLeave);
             MouseMove += new MouseEventHandler(OnMouseMove);
             Size = new Size(320, 240);
+        }
+
+        public void SetGridColor(Color c)
+        {
+            mGridColor = c;
+            Refresh();
+        }
+
+        public void SetGridMode(bool mb, bool block, bool pixel)
+        {
+            mMBGrid = mb;
+            mBlockGrid = block;
+            mPixelGrid = pixel;
+            mNotifier.MouseNotify("");
+            Refresh();
+        }
+
+        public void SetFFMode(FrameFieldMode f)
+        {
+            mFF = f;
+            mNotifier.MouseNotify("");
+            Refresh();
+        }
+
+        public string MouseCoords(int x, int y)
+        {
+            int mb_l = (mFF == FrameFieldMode.MBAFF ? 8 : 16);
+            int mb_x = (x/16);
+            int mb_y =  (y/mb_l);
+            int rem_x = (x- (mb_x * 16));
+            int rem_y = (y- (mb_y * mb_l));
+            return String.Format("({0} x {1}) MB [{2}, {3}] + <{4}, {5}> ",
+                                 x,y, 
+                                 mb_x, mb_y,
+                                 rem_x, rem_y);
         }
 
         public void UpdateMaths()
@@ -167,11 +221,13 @@ namespace yuv3
             mMaths.Update();
             if (mMaths.Bitmap != null)
             {
-                max_w = mMaths.Bitmap.Width;
-                max_h = mMaths.Bitmap.Height;
+                max_w = (int)(mMaths.Bitmap.Width * z);
+                max_h = (int)(mMaths.Bitmap.Height * z);
+                mAppState.SetIsMaths(true);
             }
             else
             {                
+                mAppState.SetIsMaths(false);
                 for (int i =0 ;i < mLayers.Length; ++i)
                 {
                     if (mLayers[i].mBitmap != null)
@@ -215,7 +271,7 @@ namespace yuv3
                 {
                     if (mMaths.Bitmap != null)
                     {
-                        mNotifier.MouseNotify(mMaths.MouseQuery(pix_x, pix_y));
+                        mNotifier.MouseNotify(MouseCoords(pix_x, pix_y) + mMaths.MouseQuery(pix_x, pix_y));
                     }
                     else
                     {
@@ -225,13 +281,46 @@ namespace yuv3
                             Color rgb = bm.GetPixel(pix_x, pix_y);
                             int cy, cu, cv;
                             mAppState.QueryYUV(m,pix_x,pix_y, out cy, out cu, out cv);
-                            mNotifier.MouseNotify(String.Format("({0}, {1}) R = {2} G = {3} B = {4} Y = {5} U = {6} V = {7}",
+                            mNotifier.MouseNotify(MouseCoords(pix_x, pix_y) + 
+                                                  String.Format("R = {2} G = {3} B = {4} Y = {5} U = {6} V = {7}",
                                                                 pix_x, pix_y, 
                                                                 rgb.R, rgb.G, rgb.B, cy, cu, cv));
                         }
                     }
                 }
             }
+        }
+
+        void DrawGrid(PaintEventArgs e, Pen p, double zoom, int x_grid, int y_grid)
+        {
+            double xp = (x_grid * zoom);
+            double yp = (y_grid * zoom);
+            Rectangle to_paint = e.ClipRectangle;
+            Graphics g = e.Graphics;
+            double top_p = Math.Round(to_paint.Top / yp) * yp;
+            double left_p = Math.Round(to_paint.Left / xp) * xp;
+            // H lines.
+            for (double j = top_p; j < (to_paint.Bottom + yp); j += yp)
+            {
+                g.DrawLine(p, to_paint.Left , (int)j, to_paint.Right, (int)j);
+            }
+            // V lines
+            for (double i = left_p; i < (to_paint.Right + xp); i += xp)
+            {
+                g.DrawLine(p, (int)i, to_paint.Top, (int)i, to_paint.Bottom);
+            }
+        }
+
+        void DrawEmptyPage(PaintEventArgs e, Rectangle everywhere)
+        {
+            Brush a_brush = new System.Drawing.SolidBrush(Color.FromArgb(50, Color.Gray));
+            Pen blk_pen = new Pen(new System.Drawing.SolidBrush(Color.FromArgb(50, Color.Black)));
+            Graphics g = e.Graphics;
+            g.FillRectangle(a_brush, everywhere);
+            g.DrawLine( blk_pen, everywhere.Left, everywhere.Bottom,
+                        everywhere.Right, everywhere.Top);
+            g.DrawLine( blk_pen, everywhere.Right, everywhere.Bottom,
+                        everywhere.Left, everywhere.Top );
         }
 
         void Render(object sender, PaintEventArgs e)
@@ -242,45 +331,74 @@ namespace yuv3
             Rectangle everywhere = new Rectangle(0, 0, (int)(zoom * this.renderSize.Width), 
                                                  (int)(zoom * this.renderSize.Height));
 
+            if (zoom <= 0)
+            {
+                DrawEmptyPage(e, e.ClipRectangle);
+                return;
+            }
             // Speed up scaling -we do a lot of it.
             // g.InterpolationMode = InterpolationMode.NearestNeighbour;
+            
+
+            Rectangle clip = e.ClipRectangle;
+            Rectangle src_it = new Rectangle((int)(clip.Left / zoom),
+                                             (int)(clip.Top / zoom),
+                                             (int)((clip.Width + zoom) /zoom),
+                                             (int)((clip.Height + zoom) /zoom));
+                                             
+
 
             Bitmap maths = mMaths.Bitmap;
             if (maths != null)
             {
-                Rectangle to_draw = new Rectangle(0, 0, 
-                                                  (int)(maths.Width * zoom), 
-                                                  (int)(maths.Height * zoom));
-                Console.WriteLine(String.Format("Paint Maths"));
-                g.DrawImage(maths, to_draw);
-                return;
+                //Rectangle to_draw = new Rectangle(0, 0, 
+                //(int)(maths.Width * zoom), 
+                 //                                 (int)(maths.Height * zoom));
+                g.DrawImage(maths, clip, src_it, GraphicsUnit.Pixel);
             }
-
-
-            for (int i = 0; i < Constants.kNumberOfChannels; ++i)
+            else
             {
-                if (mLayers[i].mBitmap != null)
+                for (int i = 0; i < Constants.kNumberOfChannels; ++i)
                 {
-                    Bitmap a_map = mLayers[i].mBitmap;
-                    Rectangle to_draw = new Rectangle(0, 0, 
-                                                      (int)(a_map.Width * zoom), 
-                                                      (int)(a_map.Height * zoom));
-                    Console.WriteLine(String.Format("Paint {0}", i));
-                    g.DrawImage(mLayers[i].mBitmap, to_draw);
-                    any = true;
+                    if (mLayers[i].mBitmap != null)
+                    {
+                        Bitmap a_map = mLayers[i].mBitmap;
+                        //Rectangle to_draw = new Rectangle(0, 0, 
+                         //                                 (int)(a_map.Width * zoom), 
+                          //                                (int)(a_map.Height * zoom));
+                        g.DrawImage(mLayers[i].mBitmap, clip, src_it, GraphicsUnit.Pixel);
+                        // g.DrawImage(mLayers[i].mBitmap, to_draw);
+                        any = true;
+                    }
+                }
+
+                if (!any)
+                {
+                    DrawEmptyPage(e, everywhere);
+                    return;
                 }
             }
 
-            if (!any)
+            if (mMBGrid || mBlockGrid || mPixelGrid && zoom > 0)
             {
-                Brush a_brush = new System.Drawing.SolidBrush(Color.FromArgb(50, Color.Gray));
-                Pen blk_pen = new Pen(new System.Drawing.SolidBrush(Color.FromArgb(50, Color.Black)));
-                g.FillRectangle(a_brush, everywhere);
-                g.DrawLine( blk_pen, everywhere.Left, everywhere.Bottom,
-                            everywhere.Right, everywhere.Top);
-                g.DrawLine( blk_pen, everywhere.Right, everywhere.Bottom,
-                            everywhere.Left, everywhere.Top );
+                Pen line_pen = new Pen(new System.Drawing.SolidBrush(mGridColor));
+                if (mMBGrid)
+                {
+                    DrawGrid(e, line_pen, zoom, 16,
+                             (mFF == FrameFieldMode.MBAFF ? 8 : 16));
+                }
+                if (mBlockGrid)
+                {
+                    line_pen.DashStyle = DashStyle.Dash;
+                    DrawGrid(e, line_pen, zoom, 8, 8);
+                }
+                if (mPixelGrid && zoom > 4.0)
+                {
+                    line_pen.DashStyle = DashStyle.Dot;
+                    DrawGrid(e, line_pen, zoom, 1, 1);
+                }
             }
+
         }
 
     }
