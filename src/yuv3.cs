@@ -14,6 +14,7 @@ using System.Windows.Forms;
 
 public class yuv3main : Form
 {
+    [STAThread]
     static public void Main()
     {
         yuv3.AppState state = new yuv3.AppState();
