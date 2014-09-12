@@ -15,6 +15,8 @@ namespace yuv3
         YUV420P,
         YUYV,
         YVYU,
+        Y8,
+        Y16,
         Unknown
     }
     
@@ -69,6 +71,10 @@ namespace yuv3
                 case YUVFileFormat.YUYV:
                     return (mWidth * mHeight * 2);
                 case YUVFileFormat.YVYU:
+                    return (mWidth * mHeight * 2);
+                case YUVFileFormat.Y8:
+                    return (mWidth * mHeight);
+                case YUVFileFormat.Y16:
                     return (mWidth * mHeight * 2);
                 default:
                     return 0;
@@ -191,6 +197,45 @@ namespace yuv3
             }
 
 
+        unsafe bool ConvertY8(System.Drawing.Imaging.BitmapData ioData, int alpha)
+            {
+                byte *out_line = (byte *)ioData.Scan0.ToPointer();
+                int stride = ioData.Stride;
+
+                Parallel.For(0, mHeight, (j) =>
+                {
+                    int uptr = (j * mWidth);
+                    byte *outp = out_line + (j* stride);
+                    for (int i =0 ;i < mWidth; ++i, outp += 4, ++uptr)
+                    {
+                        outp[3] = (byte)alpha;
+                        outp[2] = outp[1] = outp[0] = (byte)mPictureBytes[uptr];
+                    }
+                });
+                return true;
+            }
+
+        
+        unsafe bool ConvertY16(System.Drawing.Imaging.BitmapData ioData, int alpha)
+            {
+                byte *out_line = (byte *)ioData.Scan0.ToPointer();
+                int stride = ioData.Stride;
+
+                Parallel.For(0, mHeight, (j) =>
+                {
+                    int uptr = (j * mWidth * 2);
+                    byte *outp = out_line + (j* stride);
+                    for (int i =0 ;i < mWidth; ++i, outp += 4, uptr += 2)
+                    {
+                        uint y = (uint)mPictureBytes[uptr]| ((uint)(mPictureBytes[uptr+1]) << 8);
+                        outp[3] = (byte)alpha;
+                        outp[2] = outp[1] = outp[0] = (byte)(y>>8);
+                    }
+                });
+                return true;
+            }
+
+            
         unsafe bool ConvertYUYV(System.Drawing.Imaging.BitmapData ioData, int alpha)
             {
                 byte *out_line = (byte *)ioData.Scan0.ToPointer();
@@ -275,6 +320,10 @@ namespace yuv3
                     return Convert420P(ioData, alpha);
                 case YUVFileFormat.YUYV:
                     return ConvertYUYV(ioData, alpha);
+                case YUVFileFormat.Y8:
+                    return ConvertY8(ioData, alpha);
+                case YUVFileFormat.Y16:
+                    return ConvertY16(ioData, alpha);
                 default:
                     break;
                 }
@@ -315,6 +364,22 @@ namespace yuv3
                     vp = yp + 3;
                 }
                 break;
+            }
+            case YUVFileFormat.Y8:
+            {
+                /* Magic! */ 
+                yp = (y * mWidth) + x;
+                cy = mPictureBytes[yp];
+                cu = -1; cv = -1;
+                return;
+            }
+            case YUVFileFormat.Y16:
+            {
+                /* Magic! */
+                yp = (y * mWidth * 2) + (x * 2);
+                cy = (mPictureBytes[yp]) | (mPictureBytes[yp+1] << 8);
+                cu = -1; cv = -1;
+                return;
             }
             default:
                 break;
