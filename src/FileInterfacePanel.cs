@@ -492,66 +492,70 @@ namespace yuv3
             DialogResult res = ofDlg.ShowDialog();
             if (res == DialogResult.OK)
             {
-                try
+                AttemptToLoad(ofDlg.FileName);
+            }
+        }
+
+        public void AttemptToLoad(String fn)
+        {
+            try
+            {
+                int w, h;
+                YUVFileFormat f;
+                
+                /* See if the file names some parameters */
+                Regex dimensions = new Regex("_([0-9]+)x([0-9]+)");
+                Match m = dimensions.Match(fn);
+                if (m.Value != String.Empty)
                 {
-                    string fn = ofDlg.FileName;
-                    int w, h;
-                    YUVFileFormat f;
-                    
-                    /* See if the file names some parameters */
-                    Regex dimensions = new Regex("_([0-9]+)x([0-9]+)");
-                    Match m = dimensions.Match(fn);
-                    if (m.Value != String.Empty)
-                    {
-                        w = int.Parse(m.Groups[1].Value);
-                        h = int.Parse(m.Groups[2].Value);
-                    }
-                    else
-                    {
-                        w = FileWidth;
-                        h = FileHeight;
-                    }
-                    
-                    /* Find the extension */
-                    int last_dot = fn.LastIndexOf('.');
-                    if (last_dot > 0)
-                    {
-                        string extn = fn.Substring(last_dot+1);
-                        f = FormatFromExtension(extn);
-                        if (f == YUVFileFormat.Unknown)
-                        {
-                            f = Format;
-                        }
-                    }
-                    else
+                    w = int.Parse(m.Groups[1].Value);
+                    h = int.Parse(m.Groups[2].Value);
+                }
+                else
+                {
+                    w = FileWidth;
+                    h = FileHeight;
+                }
+                
+                /* Find the extension */
+                int last_dot = fn.LastIndexOf('.');
+                if (last_dot > 0)
+                {
+                    string extn = fn.Substring(last_dot+1);
+                    f = FormatFromExtension(extn);
+                    if (f == YUVFileFormat.Unknown)
                     {
                         f = Format;
                     }
-                       
-                    // Console.WriteLine(String.Format("{0} x{1}", w,h));
-                    mAppState.LoadFile(mWhich, ofDlg.FileName, 
-                                       w, h, Frame, f);
-                    mFileButton.Text = ofDlg.FileName;
-
-                    //Console.WriteLine(String.Format(" Back .. "));
-                    // Now that we are sure the new load is OK .. 
-                    bool f_changed = (f != Format);
-                    bool s_changed = (w != FileWidth || h != FileHeight);
-                    mF = f; mW = w; mH = h;
-                    if (f_changed)
-                    {
-                        SetNewFormat(f);
-                    }
-                    if (s_changed)
-                    {
-                        SetNewDimensions(w,h);
-                    }
                 }
-                catch (Exception x)
+                else
                 {
-                    mAppState.SetStatus("Cannot open " + ofDlg.FileName + " -" + x, true);
-                    mFileButton.Text = "(none)";
+                    f = Format;
                 }
+                
+                // Console.WriteLine(String.Format("{0} x{1}", w,h));
+                mAppState.LoadFile(mWhich, fn,
+                                   w, h, Frame, f);
+                mFileButton.Text = fn;
+                
+                //Console.WriteLine(String.Format(" Back .. "));
+                // Now that we are sure the new load is OK .. 
+                bool f_changed = (f != Format);
+                bool s_changed = (w != FileWidth || h != FileHeight);
+                mF = f; mW = w; mH = h;
+                if (f_changed)
+                {
+                    SetNewFormat(f);
+                }
+                if (s_changed)
+                {
+                    SetNewDimensions(w,h);
+                }
+            }
+            catch (Exception x)
+            {
+                mAppState.SetStatus("Cannot open " + fn + " -" + x, true);
+                mFileButton.Text = "(none)";
             }
         }
 

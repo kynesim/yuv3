@@ -146,7 +146,6 @@ namespace yuv3
         unsafe bool Convert420I(System.Drawing.Imaging.BitmapData ioData, int alpha)
             {                    
                 int yptr = 0;
-                int rgbptr = 0;
                 int uptr = (mWidth * mHeight);
                 int vptr = uptr + 1;
                 int old_uptr = uptr;

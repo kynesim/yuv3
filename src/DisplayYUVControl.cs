@@ -362,7 +362,7 @@ namespace yuv3
                 {
                     if (mLayers[i].mBitmap != null)
                     {
-                        Bitmap a_map = mLayers[i].mBitmap;
+                        // Bitmap a_map = mLayers[i].mBitmap;
                         //Rectangle to_draw = new Rectangle(0, 0, 
                          //                                 (int)(a_map.Width * zoom), 
                           //                                (int)(a_map.Height * zoom));

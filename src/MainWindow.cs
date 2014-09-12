@@ -62,14 +62,13 @@ namespace yuv3
         }
 
 
-        public MainWindow(AppState inAppState)
+        public MainWindow(AppState inAppState, String[] filesToLoad)
         {
             // Faff with reflection.
             try
             {
                 _assembly = Assembly.GetExecutingAssembly();
                 _bgimageStream = _assembly.GetManifestResourceStream("MainBackground.png");
-                Console.WriteLine("is = {0}", _bgimageStream == null);
             }
             catch
             {
@@ -286,6 +285,10 @@ namespace yuv3
             SetStatus("Idle", false);
 
             Text = "YUV3";
+            for (int i =0 ;i < filesToLoad.Length && i < mFiles.Length; ++i)
+            {
+                mFiles[i].AttemptToLoad(filesToLoad[i]);
+            }
         }
 
         public void SetGridColor(Color c)

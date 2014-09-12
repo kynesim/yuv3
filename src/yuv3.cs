@@ -15,10 +15,10 @@ using System.Windows.Forms;
 public class yuv3main : Form
 {
     [STAThread]
-    static public void Main()
+    static public void Main(String[] s)
     {
         yuv3.AppState state = new yuv3.AppState();
-        Application.Run(new yuv3.MainWindow(state));
+        Application.Run(new yuv3.MainWindow(state, s));
     }
 }
 
