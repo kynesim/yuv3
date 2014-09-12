@@ -31,6 +31,8 @@ namespace yuv3
         IStatusNotifier mNotifier;
         Bitmap mBitmap;
         MathsOperation mOp;
+        int mScale;
+        Bitmap mScaledBitmap;
 
         public MathsOperation Operation
         {
@@ -53,6 +55,18 @@ namespace yuv3
             get
             {
                 return (mPixels != null);
+            }
+        }
+        
+        public Bitmap ScaledBitmap
+        {
+            get
+            {
+                if (mBitmap == null && mOp != MathsOperation.None) 
+                {
+                 EnsureBitmap();   
+                }
+                return mScaledBitmap;
             }
         }
 
@@ -204,6 +218,31 @@ namespace yuv3
 
                 result.UnlockBits(someData);
                 mBitmap = result;
+            }
+            UpdateScaledBitmap();
+        }
+
+        void UpdateScaledBitmap()
+        {
+            if (mAppState.SoftScaling)
+            {
+                if (mScaledBitmap == null || mScale != mAppState.Zoom)
+                {
+                    if (mBitmap != null)
+                    {
+                        mScaledBitmap = Utils.ScaleBitmap(mBitmap, (int)mAppState.Zoom);
+                        mScale = (int)mAppState.Zoom;
+                    }
+                    else
+                    {
+                        mScaledBitmap = null;
+                    }
+                }
+
+            }
+            else
+            {
+                mScaledBitmap = null;
             }
         }
     }

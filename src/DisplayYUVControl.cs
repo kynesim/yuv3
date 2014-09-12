@@ -24,11 +24,16 @@ namespace yuv3
         public Bitmap mBitmap;
         // The alpha for this image.
         public int     mAlpha;
+        // The scaled bitmap for this image.
+        public Bitmap mScaledBitmap;
+        public int mScale;
 
         public LayerInfo()
         {
             mBitmap = null;
             mAlpha = 0;
+            mScaledBitmap = null;
+            mScale = 0;
         }
     }
 
@@ -191,6 +196,16 @@ namespace yuv3
                                         result.mBitmap.PixelFormat);
             ok = aFile.ToRGB32(someData, alpha);
             result.mBitmap.UnlockBits(someData);
+            if (mAppState.SoftScaling)
+            {
+                result.mScaledBitmap = Utils.ScaleBitmap(result.mBitmap, (int)mAppState.Zoom);
+                result.mScale = (int)mAppState.Zoom;
+            }
+            else
+            {
+                result.mScaledBitmap = null;
+            }
+
             if (!ok)
             {
                 result.mBitmap = null;
@@ -241,13 +256,28 @@ namespace yuv3
                     {
                         int w = (int)(mLayers[i].mBitmap.Width * z);
                         int h = (int)(mLayers[i].mBitmap.Height * z);
+                        if (mAppState.SoftScaling)
+                        {
+                            if (mLayers[i].mScaledBitmap == null ||
+                                mLayers[i].mScale != (int)mAppState.Zoom)
+                            {
+                                mLayers[i].mScaledBitmap = Utils.ScaleBitmap(mLayers[i].mBitmap,
+                                                                             (int)mAppState.Zoom);
+                                mLayers[i].mScale = (int)mAppState.Zoom;
+                            }
+                        }
+                        else
+                        {
+                            mLayers[i].mScaledBitmap = null;
+                        }
+
                         if (w > max_w)
                         {
-                            max_w =w;
+                            max_w = w;
                         }
                         if (h > max_h)
                         {
-                        max_h = h;
+                            max_h = h;
                         }
                     }
                 }
@@ -343,8 +373,8 @@ namespace yuv3
                 DrawEmptyPage(e, e.ClipRectangle);
                 return;
             }
-            // Speed up scaling -we do a lot of it.
-            g.InterpolationMode = InterpolationMode.NearestNeighbor;
+            // Don't do this - causes great confusion - rrw 2014-09-12
+            // g.InterpolationMode = InterpolationMode.NearestNeighbor;
             
 
             Rectangle clip = e.ClipRectangle;
@@ -356,18 +386,19 @@ namespace yuv3
 
 
             Bitmap maths = mMaths.Bitmap;
+            Bitmap scaled = mMaths.ScaledBitmap;
             if (maths != null)
             {
                 if (Constants.kFastDrawing)
                 {
-                    g.DrawImage(maths, clip, src_it, GraphicsUnit.Pixel);                    
+                    g.DrawImage(maths, clip, src_it, GraphicsUnit.Pixel);                                            
                 }
                 else
                 {
                     Rectangle to_draw = new Rectangle(0, 0,
                                                       (int)(maths.Width * zoom), 
                                                       (int)(maths.Height * zoom));
-                    g.DrawImage(maths, to_draw);
+                    g.DrawImage((scaled != null) ? scaled : maths, to_draw);
                 }
             }
             else
@@ -386,8 +417,8 @@ namespace yuv3
                             Rectangle to_draw = new Rectangle(0, 0, 
                                                               (int)(a_map.Width * zoom), 
                                                               (int)(a_map.Height * zoom));
-                            
-                             g.DrawImage(mLayers[i].mBitmap, to_draw);
+                             g.DrawImage((mLayers[i].mScaledBitmap != null) ? 
+                                        mLayers[i].mScaledBitmap : mLayers[i].mBitmap, to_draw);
                         }
                         any = true;
                     }

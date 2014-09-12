@@ -15,6 +15,20 @@ namespace yuv3
         // Stores which index is in which register: -1 => none.
         public int[] mRegisters;
         public int mToMeasure;
+        public bool mSoftScaling;
+
+        public bool SoftScaling
+        {
+            get
+            {
+                return mSoftScaling;
+            }
+            set
+            {
+                mSoftScaling =value;
+                mW.Display.ImagesChanged();
+            }
+        }
 
         public int ToMeasure
         {

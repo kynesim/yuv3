@@ -24,6 +24,7 @@ namespace yuv3
         ToolStripButton mMBGrid, mBlockGrid, mPixelGrid;
         ToolStripButton mGridColor;
         ToolStripLabel mGridColorLabel;
+        ToolStripButton mSoftScaling;
         Assembly _assembly;
         Stream _bgimageStream;
 
@@ -141,6 +142,13 @@ namespace yuv3
             zMinus.Click += new EventHandler(OnDecreaseZoom);
             mTools.Items.Add(zMinus);
            
+            mSoftScaling = new ToolStripButton();
+            mSoftScaling.Text = "SoftScale";
+            mSoftScaling.AutoSize = true;
+            mSoftScaling.CheckOnClick = true;
+            mSoftScaling.CheckedChanged += new EventHandler(OnSoftScaleChanged);;
+            mTools.Items.Add(mSoftScaling);
+
             mTools.Items.Add(new ToolStripSeparator());
 
             l = new ToolStripLabel();
@@ -398,6 +406,11 @@ namespace yuv3
         public void TrackerIndexChanged(Object sender, EventArgs e)
         {
             mAppState.ToMeasure = mTrackerCombo.SelectedIndex;
+        }
+
+        public void OnSoftScaleChanged(Object sender, EventArgs e)
+        {
+            mAppState.SoftScaling = mSoftScaling.Checked;
         }
 
         public void OnDecreaseZoom(Object sender, EventArgs e)

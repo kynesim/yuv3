@@ -3,11 +3,59 @@
 
 using System;
 using System.Globalization;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.Threading.Tasks;
 
 namespace yuv3
 {
     public class Utils
     {
+        public static unsafe Bitmap ScaleBitmap(Bitmap inmap, int zoom)
+            {
+                Bitmap result = new Bitmap(inmap.Width * zoom, inmap.Height * zoom, PixelFormat.Format32bppArgb);
+                System.Drawing.Imaging.BitmapData inData = 
+                    inmap.LockBits(new Rectangle(0, 0, inmap.Width, inmap.Height),
+                                   System.Drawing.Imaging.ImageLockMode.ReadWrite,
+                                   PixelFormat.Format32bppArgb);
+                System.Drawing.Imaging.BitmapData outData = 
+                    result.LockBits(new Rectangle(0, 0, result.Width, result.Height),
+                                    System.Drawing.Imaging.ImageLockMode.ReadWrite,
+                                    PixelFormat.Format32bppArgb);
+                int stride_in = inData.Stride;
+                int stride_out = outData.Stride;
+                byte *pin = (byte *)inData.Scan0.ToPointer();
+                byte *pout = (byte *)outData.Scan0.ToPointer();
+                int w_in = inmap.Width;
+
+                Parallel.For(0, inmap.Height, (j) =>
+                {
+                    for (int z = 0; z < zoom; ++z)
+                    {
+                        byte *in_line = pin + (j * stride_in);
+                        byte *out_line = pout + (((j*zoom)+z) * stride_out);
+                        for (int i =0 ;i < w_in; ++i, in_line += 4)
+                        {
+                            byte a = in_line[0];
+                            byte b = in_line[1];
+                            byte c = in_line[2];
+                            byte d = in_line[3];
+                            for (int x = 0; x < zoom; ++x, out_line += 4)
+                            {
+                                out_line[0] =a;
+                                out_line[1] = b;
+                                out_line[2] = c;
+                                out_line[3] = d;
+                            }
+                        }
+                    }
+                });
+                inmap.UnlockBits(inData);
+                result.UnlockBits(outData);
+                return result;
+            }
+                
         
         public static unsafe int clamp(int v)
             {
