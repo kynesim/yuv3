@@ -42,7 +42,6 @@ namespace yuv3
             {
                 if (value != mOp)
                 {
-                    Console.WriteLine("Op!");
                     mOp = value;
                     Update();
                 }
@@ -149,7 +148,7 @@ namespace yuv3
                 return;
             }
 
-            Console.WriteLine("Hit subtract!");
+            //Console.WriteLine("Hit subtract!");
             int min_x = (a.Width < b.Width ? a.Width : b.Width);
             int min_y = (a.Height < b.Height ? a.Height : b.Height);
             mOp = MathsOperation.SubtractAB;
@@ -176,10 +175,8 @@ namespace yuv3
             
         unsafe void EnsureBitmap()
         {
-            Console.Write("EnsureBitmap!");
             if (mBitmap == null && mPixels != null)
             {
-                Console.Write("EnsureBitmap[2]!");
                 Bitmap result = new Bitmap(mWidth, mHeight, PixelFormat.Format32bppArgb);
                 System.Drawing.Imaging.BitmapData someData = 
                     result.LockBits(new Rectangle(0,0, mWidth, mHeight),

@@ -528,12 +528,12 @@ namespace yuv3
                         f = Format;
                     }
                        
-                    Console.WriteLine(String.Format("{0} x{1}", w,h));
+                    // Console.WriteLine(String.Format("{0} x{1}", w,h));
                     mAppState.LoadFile(mWhich, ofDlg.FileName, 
                                        w, h, Frame, f);
                     mFileButton.Text = ofDlg.FileName;
 
-                    Console.WriteLine(String.Format(" Back .. "));
+                    //Console.WriteLine(String.Format(" Back .. "));
                     // Now that we are sure the new load is OK .. 
                     bool f_changed = (f != Format);
                     bool s_changed = (w != FileWidth || h != FileHeight);

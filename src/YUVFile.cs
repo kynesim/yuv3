@@ -303,7 +303,7 @@ namespace yuv3
                 }
 
                 
-                Console.WriteLine(String.Format("ToRGB32! {0} {1}", mWidth,mHeight));
+                //Console.WriteLine(String.Format("ToRGB32! {0} {1}", mWidth,mHeight));
                 switch (mFormat) 
                 {
                 case YUVFileFormat.YUV420I:
@@ -451,14 +451,14 @@ namespace yuv3
                 try
                 {
                     mPictureBytes = new byte[BytesPerPicture];
-                    Console.WriteLine(String.Format("Reading {0} bytes from {1}",
-                                                    BytesPerPicture, FileOffsetOfPicture));
+                    //Console.WriteLine(String.Format("Reading {0} bytes from {1}",
+                    //BytesPerPicture, FileOffsetOfPicture));
                     mStream.Seek(FileOffsetOfPicture, SeekOrigin.Begin);
                     mStream.Read(mPictureBytes, 
                                  0, BytesPerPicture);
                     mPictureOffset = FileOffsetOfPicture;
-                    Console.WriteLine(String.Format("Sum = {0}",
-                                                    Checksum));
+                    //Console.WriteLine(String.Format("Sum = {0}",
+                    //Checksum));
                 }
                 catch (Exception e)
                 {
@@ -470,7 +470,7 @@ namespace yuv3
             }
             else
             {
-                Console.WriteLine(String.Format("XX {0}", Checksum));
+                //Console.WriteLine(String.Format("XX {0}", Checksum));
             }
             return true;
         }
