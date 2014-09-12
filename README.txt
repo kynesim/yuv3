@@ -22,6 +22,13 @@ the .NET runtime v.4 or above.
  Should make you happy if you are running Ubuntu (though I am testing with the more up
 to date packages from the Mono project repository).
 
+ Then run:
+
+ make
+ mono bin/yuv3.exe
+
+ And you should be away.
+
  Things you should know:
 
  - Support for YUV420I and VYUY formats is tentative as I don't have any
