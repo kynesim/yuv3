@@ -9,18 +9,15 @@ YUV3
 
  YUV3 is licenced under the MPL 1.1 .
 
- YUV3 is the spiritual (and actual) successor to the YUV2 which was shipped as part of 
-tstools (http://code.google.com/p/tstools).
+ YUV3 is the spiritual (and actual) successor to the YUV2 which was
+shipped as part of tstools (http://code.google.com/p/tstools).
 
- It is written in C# and should work on both Linux and Windows. On Windows you will need
-the .NET runtime v.4 or above.
-
- On Linux, you will want Mono (http://www.mono-project.org/). 
-
-# apt-get install mono-complete
-
- Should make you happy if you are running Ubuntu (though I am testing with the more up
-to date packages from the Mono project repository).
+ It is written in C# and should work on both Linux and Windows. On
+Windows you will need the .NET runtime v.4 or above.
+        
+ DANGER WILL ROBINSON! On Linux you will need the latest
+Xamarin packages from http://www.mono-project.org/ , as 
+Ubuntu 14.04 (at least) has broken distribution packages.
 
  Then run:
 
