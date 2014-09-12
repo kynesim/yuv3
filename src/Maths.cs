@@ -175,7 +175,7 @@ namespace yuv3
             
         unsafe void EnsureBitmap()
         {
-            if (mBitmap == null && mPixels != null)
+            if (mBitmap == null && mPixels != null && mWidth != 0 && mHeight != 0)
             {
                 Bitmap result = new Bitmap(mWidth, mHeight, PixelFormat.Format32bppArgb);
                 System.Drawing.Imaging.BitmapData someData = 
