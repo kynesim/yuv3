@@ -209,10 +209,13 @@ namespace yuv3
                     int in_line = (3 * j * mWidth);
                     for (int i = 0; i < mWidth; ++i, out_line += 4, in_line += 3)
                     {
+                        int y = pixels[ResultIdx, in_line] >> shift;
+                        int u = pixels[ResultIdx, in_line + 1] >> shift;
+                        int v = pixels[ResultIdx, in_line + 2] >> shift;
                         Utils.YUVToRGB(out_line, 255, 
-                                       (pixels[ResultIdx, in_line] >> shift),
-                                       (pixels[ResultIdx, in_line + 1] >> shift),
-                                       (pixels[ResultIdx, in_line + 2] >> shift));
+                                       (y/2) + 128,
+                                       (u/2) + 128,
+                                       (v/2) + 128);
                     }
                 });
 
