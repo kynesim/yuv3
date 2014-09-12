@@ -33,6 +33,37 @@ namespace yuv3
         int mPictureOffset;
         IStatusNotifier mNotifier;
 
+        public int PixelBits
+        {
+            get
+            {
+                return (mFormat == YUVFileFormat.Y16) ? 16 : 8;
+            }
+        }
+
+        public int MaxPixelValue
+        {
+            get
+            {
+                return (mFormat == YUVFileFormat.Y16 ? 65535 : 255);
+            }
+        }
+
+        public int Width
+        {
+            get
+            {
+                return mWidth;
+            }
+        }
+        public int Height
+        {
+            get
+            {
+                return mHeight;
+            }
+        }
+
         public int Frame
         {
             get
@@ -110,46 +141,7 @@ namespace yuv3
             mLoaded = false;
         }
 
-        public unsafe int clamp(int v)
-            {
-                if  (v < 0)
-                {
-                    return 0;
-                }
-                if (v > 255)
-                {
-                    return 255;
-                }
-                return v;
-            }
 
-        public unsafe void YUVToRGB(byte * result, int alpha,
-                             int y, int u, int v)
-        {           
-            // Alpha
-            int r,g ,b;
-            result[3] = (byte)alpha;
-            // R
-            r = (int)(1.164*((float)y-16.0) + 1.596*((float)v-128.0));
-            // G
-            g = (int)(1.164*((float)y-16.0) - 0.813*((float)v-128.0) - 0.391*((float)u-128.0));
-            // B
-            b = (int)(1.164*((float)y-16.0) + 2.018*((float)u - 128.0));
-            // *result = (alpha << 24) | (r << 16) | (g << 8) | b;
-
-            r = clamp(r);
-            g = clamp(g);
-            b = clamp(b);
-
-            result[2] = (byte)r;
-            result[1] = (byte)g;
-            result[0] = (byte)b;
-
-            //result[0] = 0x80;
-            //result[1] = 0x60;
-            //result[2] = 0xFF;
-            //result[3] = 0x20;
-        }
       
         unsafe bool Convert420I(System.Drawing.Imaging.BitmapData ioData, int alpha)
             {                    
@@ -174,12 +166,12 @@ namespace yuv3
                         //                                 yptr, uptr, vptr, 
                         //                                mPictureBytes.Length,
                         //                               i,j));
-                        YUVToRGB(outp, alpha, 
+                        Utils.YUVToRGB(outp, alpha, 
                                  mPictureBytes[yptr], 
                                  mPictureBytes[uptr],
                                  mPictureBytes[vptr]);
                         
-                        YUVToRGB(outp+4, alpha,
+                        Utils.YUVToRGB(outp+4, alpha,
                                  mPictureBytes[yptr + 1], 
                                      mPictureBytes[uptr],
                                  mPictureBytes[vptr]);
@@ -249,12 +241,12 @@ namespace yuv3
                     for (int i =0 ;i < mWidth; i += 2, outp += 8, uptr += 4)
                     {
                         // First pixel.
-                        YUVToRGB(outp, alpha,
+                        Utils.YUVToRGB(outp, alpha,
                                  mPictureBytes[uptr], // Y
                                  mPictureBytes[uptr + 1], // U
                                  mPictureBytes[uptr + 3] // V
                             );
-                        YUVToRGB(outp + 4, alpha,
+                        Utils.YUVToRGB(outp + 4, alpha,
                                  mPictureBytes[uptr + 2], // Y2
                                  mPictureBytes[uptr + 1], // U
                                  mPictureBytes[uptr + 3] // V
@@ -289,12 +281,12 @@ namespace yuv3
                           //                              mPictureBytes.Length,
                         //                            i,j));
 
-                        YUVToRGB(outp, alpha, 
+                        Utils.YUVToRGB(outp, alpha, 
                                   mPictureBytes[yptr],  
                                  mPictureBytes[uptr], 
                                  mPictureBytes[vptr]);
                         
-                        YUVToRGB(outp+4, alpha,
+                        Utils.YUVToRGB(outp+4, alpha,
                                  mPictureBytes[yptr + 1], 
                                  mPictureBytes[uptr], 
                                  mPictureBytes[vptr]);

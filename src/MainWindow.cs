@@ -237,10 +237,28 @@ namespace yuv3
             Text = "YUV3";
         }
 
+        public void SetOperation(MathsOperation op)
+        {
+            Display.MathsOperation = op;
+        }
+
+        public MathsOperation GetOperation()
+        {
+            return Display.MathsOperation;
+        }
+
         public void OnSubtractChanged(Object sender, EventArgs e)
         {
-            Console.WriteLine("Fish");
-
+            if (mSubtractButton.Checked)
+            {
+                /* Let's see what we can do. */
+                SetOperation(MathsOperation.SubtractAB);
+            }
+            else
+            {
+                SetOperation(MathsOperation.None);
+            }
+            Display.ImagesChanged();
         }
 
         public void SetVisible(int which, bool is_visible)

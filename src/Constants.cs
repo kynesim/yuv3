@@ -14,6 +14,10 @@ namespace yuv3
         public const int kDefaultWidth = 640;
         public const int kDefaultHeight = 480;
         public const YUVFileFormat kDefaultFormat = YUVFileFormat.YUV420P;
+        
+        public const int RegisterA = 0;
+        public const int RegisterB = 1;
+
     }
 }
 

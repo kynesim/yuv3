@@ -28,9 +28,21 @@ namespace yuv3
         // Layers, in order.
         public LayerInfo[] mLayers;
         // If non-Null, we are displaying a math function and this is it.
-        public Bitmap mMath;
+        public Maths mMaths;
         public Size renderSize;
         public IStatusNotifier mNotifier;
+
+        public MathsOperation MathsOperation
+        {
+            get
+            {
+                return mMaths.Operation;
+            }
+            set
+            {
+                mMaths.Operation = value;
+            }
+        }
 
         public DisplayYUVControl(AppState in_as, IStatusNotifier inNotifier)
         {
@@ -42,11 +54,17 @@ namespace yuv3
             {
                 mLayers[i] = new LayerInfo();
             }
-            mMath = null;
+            mMaths = new Maths(in_as, inNotifier);
             Paint += new PaintEventHandler(Render);
             MouseLeave += new EventHandler(OnMouseLeave);
             MouseMove += new MouseEventHandler(OnMouseMove);
             Size = new Size(320, 240);
+        }
+
+        public void UpdateMaths()
+        {
+            mMaths.Update();
+            ImagesChanged();
         }
 
         public void UpdateLayer(int layer, YUVFile aFile)
@@ -141,24 +159,33 @@ namespace yuv3
 
 
         public void ImagesChanged()
-        {
+       {
             /* Work out the new size for this control */
             // We never claim to be any smaller than this.
             int max_w = 320, max_h = 240;
             double z = mAppState.Zoom;
-            for (int i =0 ;i < mLayers.Length; ++i)
+            mMaths.Update();
+            if (mMaths.Bitmap != null)
             {
-                if (mLayers[i].mBitmap != null)
+                max_w = mMaths.Bitmap.Width;
+                max_h = mMaths.Bitmap.Height;
+            }
+            else
+            {                
+                for (int i =0 ;i < mLayers.Length; ++i)
                 {
-                    int w = (int)(mLayers[i].mBitmap.Width * z);
-                    int h = (int)(mLayers[i].mBitmap.Height * z);
-                    if (w > max_w)
+                    if (mLayers[i].mBitmap != null)
                     {
-                        max_w =w;
-                    }
-                    if (h > max_h)
-                    {
+                        int w = (int)(mLayers[i].mBitmap.Width * z);
+                        int h = (int)(mLayers[i].mBitmap.Height * z);
+                        if (w > max_w)
+                        {
+                            max_w =w;
+                        }
+                        if (h > max_h)
+                        {
                         max_h = h;
+                        }
                     }
                 }
             }
@@ -186,15 +213,22 @@ namespace yuv3
                 int m = mAppState.ToMeasure;
                 if (m >= 0 && pix_x >= 0 && pix_y >= 0)
                 {
-                    Bitmap bm = mLayers[m].mBitmap;
-                    if (bm != null && pix_x < bm.Width && pix_y < bm.Height)
+                    if (mMaths.Bitmap != null)
                     {
-                        Color rgb = bm.GetPixel(pix_x, pix_y);
-                        int cy, cu, cv;
-                        mAppState.QueryYUV(m,pix_x,pix_y, out cy, out cu, out cv);
-                        mNotifier.MouseNotify(String.Format("({0}, {1}) R = {2} G = {3} B = {4} Y = {5} U = {6} V = {7}",
-                                                            pix_x, pix_y, 
-                                                            rgb.R, rgb.G, rgb.B, cy, cu, cv));
+                        mNotifier.MouseNotify(mMaths.MouseQuery(pix_x, pix_y));
+                    }
+                    else
+                    {
+                        Bitmap bm = mLayers[m].mBitmap;
+                        if (bm != null && pix_x < bm.Width && pix_y < bm.Height)
+                        {
+                            Color rgb = bm.GetPixel(pix_x, pix_y);
+                            int cy, cu, cv;
+                            mAppState.QueryYUV(m,pix_x,pix_y, out cy, out cu, out cv);
+                            mNotifier.MouseNotify(String.Format("({0}, {1}) R = {2} G = {3} B = {4} Y = {5} U = {6} V = {7}",
+                                                                pix_x, pix_y, 
+                                                                rgb.R, rgb.G, rgb.B, cy, cu, cv));
+                        }
                     }
                 }
             }
@@ -210,7 +244,19 @@ namespace yuv3
 
             // Speed up scaling -we do a lot of it.
             // g.InterpolationMode = InterpolationMode.NearestNeighbour;
-            
+
+            Bitmap maths = mMaths.Bitmap;
+            if (maths != null)
+            {
+                Rectangle to_draw = new Rectangle(0, 0, 
+                                                  (int)(maths.Width * zoom), 
+                                                  (int)(maths.Height * zoom));
+                Console.WriteLine(String.Format("Paint Maths"));
+                g.DrawImage(maths, to_draw);
+                return;
+            }
+
+
             for (int i = 0; i < Constants.kNumberOfChannels; ++i)
             {
                 if (mLayers[i].mBitmap != null)

@@ -149,6 +149,7 @@ namespace yuv3
                 mW.ClearRegister(regno, mRegisters[regno]);
             }
             mRegisters[regno] = which;
+            mW.Display.UpdateMaths();
         }
 
         public AppState()
@@ -168,5 +169,30 @@ namespace yuv3
                 mFiles[i] = new YUVFile(mNotifier);
             }
         }
+
+        public void SetOperation(MathsOperation op)
+        {
+            mW.SetOperation(op);
+        }
+
+        public MathsOperation GetOperation()
+        {
+            return mW.GetOperation();
+        }
+
+        public YUVFile FileForRegister(int reg)
+        {
+            if (mRegisters[reg] >= 0) 
+            {
+                return mFiles[mRegisters[reg]];
+            }
+            else
+            {
+                return null;
+            }
+        }
+
     }
+
+
 }
