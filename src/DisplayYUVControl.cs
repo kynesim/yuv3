@@ -172,6 +172,13 @@ namespace yuv3
         public void RenderToBitmap(LayerInfo result, YUVFile aFile, int alpha)
         {
             bool ok;
+            if (aFile.Width < 1 || aFile.Height < 1)
+            {
+                // None of that or any of the other.
+                Console.WriteLine("+++ ERROR. OUT OF CHEESE. REDO FROM START.");
+                result.mBitmap = null;
+                return;
+            }
             if (result.mBitmap == null ||
                 result.mBitmap.Width != aFile.mWidth ||
                 result.mBitmap.Height != aFile.mHeight)

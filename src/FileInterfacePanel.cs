@@ -437,8 +437,9 @@ namespace yuv3
             int x = the_text.IndexOf("x");
             if (x >= 0)
             {
-                string left = the_text.Substring(0, x-1);
+                string left = the_text.Substring(0, x);
                 string right = the_text.Substring(x+1);
+
                 left = Regex.Replace(left, @"\s", "");
                 right = Regex.Replace(right, @"\s", "");
                 if (int.TryParse(left, out new_width) && 
