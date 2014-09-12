@@ -344,7 +344,7 @@ namespace yuv3
                 return;
             }
             // Speed up scaling -we do a lot of it.
-            // g.InterpolationMode = InterpolationMode.NearestNeighbour;
+            g.InterpolationMode = InterpolationMode.NearestNeighbor;
             
 
             Rectangle clip = e.ClipRectangle;
@@ -358,10 +358,17 @@ namespace yuv3
             Bitmap maths = mMaths.Bitmap;
             if (maths != null)
             {
-                //Rectangle to_draw = new Rectangle(0, 0, 
-                //(int)(maths.Width * zoom), 
-                 //                                 (int)(maths.Height * zoom));
-                g.DrawImage(maths, clip, src_it, GraphicsUnit.Pixel);
+                if (Constants.kFastDrawing)
+                {
+                    g.DrawImage(maths, clip, src_it, GraphicsUnit.Pixel);                    
+                }
+                else
+                {
+                    Rectangle to_draw = new Rectangle(0, 0,
+                                                      (int)(maths.Width * zoom), 
+                                                      (int)(maths.Height * zoom));
+                    g.DrawImage(maths, to_draw);
+                }
             }
             else
             {
@@ -369,12 +376,19 @@ namespace yuv3
                 {
                     if (mLayers[i].mBitmap != null)
                     {
-                        // Bitmap a_map = mLayers[i].mBitmap;
-                        //Rectangle to_draw = new Rectangle(0, 0, 
-                         //                                 (int)(a_map.Width * zoom), 
-                          //                                (int)(a_map.Height * zoom));
-                        g.DrawImage(mLayers[i].mBitmap, clip, src_it, GraphicsUnit.Pixel);
-                        // g.DrawImage(mLayers[i].mBitmap, to_draw);
+                        if (Constants.kFastDrawing)
+                        {
+                            g.DrawImage(mLayers[i].mBitmap, clip, src_it, GraphicsUnit.Pixel);
+                        }
+                        else
+                        {
+                            Bitmap a_map = mLayers[i].mBitmap;
+                            Rectangle to_draw = new Rectangle(0, 0, 
+                                                              (int)(a_map.Width * zoom), 
+                                                              (int)(a_map.Height * zoom));
+                            
+                             g.DrawImage(mLayers[i].mBitmap, to_draw);
+                        }
                         any = true;
                     }
                 }

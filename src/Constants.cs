@@ -9,6 +9,9 @@ namespace yuv3
 
         public const int kNumberOfChannels = 4;
 
+        // Fast drawing - doesn't seem to work properly for some reason.
+        public const bool kFastDrawing = false;
+
 
         public const int kRegisters = 8;
         public const int kDefaultWidth = 640;
