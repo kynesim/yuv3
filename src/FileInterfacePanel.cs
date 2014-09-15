@@ -167,7 +167,7 @@ namespace yuv3
             inner.Controls.Add(f);
 
             mFormat = new ComboBox();
-            string[] formats = new string[]{ "YUV420I", "YUV420P", "YUYV", "YVYU", "Y8", "Y16", "None" };
+            string[] formats = new string[]{ "YUV420I", "YUV420P", "YUYV", "YVYU", "Y8", "Y16", "YUV444","None" };
             mFormat.Items.AddRange(formats);
             mFormat.SelectedValueChanged += new System.EventHandler(OnFormatChanged);
             mFormat.SelectedIndex = 0;
@@ -264,6 +264,8 @@ namespace yuv3
                 break;
             case YUVFileFormat.Y16:  mFormat.SelectedIndex = 5;
                 break;
+            case YUVFileFormat.YUV444: mFormat.SelectedIndex = 6;
+                break;
             default:
                 mFormat.SelectedIndex = 4;
                 break;
@@ -324,6 +326,9 @@ namespace yuv3
                 break;
             case 5: 
                 result = YUVFileFormat.Y16;
+                break;
+            case 6:
+                result = YUVFileFormat.YUV444;
                 break;
             default:
                 // Hmm .. 
@@ -485,6 +490,10 @@ namespace yuv3
             else if (ext == "yvyu" || ext == "yvyu422")
             {
                 return YUVFileFormat.YVYU;
+            }
+            else if (ext == "yuv444")
+            {
+                return YUVFileFormat.YUV444;
             }
             else if (ext == "y8")
             {

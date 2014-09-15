@@ -17,6 +17,7 @@ namespace yuv3
         YVYU,
         Y8,
         Y16,
+        YUV444,
         Unknown
     }
     
@@ -107,6 +108,8 @@ namespace yuv3
                     return (mWidth * mHeight);
                 case YUVFileFormat.Y16:
                     return (mWidth * mHeight * 2);
+                case YUVFileFormat.YUV444:
+                    return (mWidth * mHeight * 3);
                 default:
                     return 0;
                 }
@@ -226,6 +229,29 @@ namespace yuv3
                 return true;
             }
 
+
+        unsafe bool ConvertYUV444(System.Drawing.Imaging.BitmapData ioData, int alpha)
+            {
+                byte *out_line = (byte *)ioData.Scan0.ToPointer();
+                int stride = ioData.Stride;
+
+                Parallel.For(0, mHeight, (j) =>
+                {
+                    // This is YUYV.. 
+                    int uptr = (j * (mWidth *3));
+                    byte *outp = out_line + (j * stride);
+                    for (int i =0 ;i < mWidth; ++i, outp += 4, uptr += 3)
+                    {
+                        Utils.YUVToRGB(outp, alpha,
+                                 mPictureBytes[uptr], // Y
+                                 mPictureBytes[uptr + 1], // U
+                                 mPictureBytes[uptr + 2] // V
+                            );
+                    }
+                });
+                return true;
+                
+            }
             
         unsafe bool ConvertYUYV(System.Drawing.Imaging.BitmapData ioData, int alpha)
             {
@@ -315,6 +341,8 @@ namespace yuv3
                     return ConvertY8(ioData, alpha);
                 case YUVFileFormat.Y16:
                     return ConvertY16(ioData, alpha);
+                case YUVFileFormat.YUV444:
+                    return ConvertYUV444(ioData, alpha);
                 default:
                     break;
                 }
@@ -371,6 +399,13 @@ namespace yuv3
                 cy = (mPictureBytes[yp]) | (mPictureBytes[yp+1] << 8);
                 cu = -1; cv = -1;
                 return;
+            }
+            case YUVFileFormat.YUV444:
+            {
+                yp = 3*((y * mWidth) + x);
+                up = yp + 1;
+                vp = yp + 2;
+                break;
             }
             default:
                 break;
