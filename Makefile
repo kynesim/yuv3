@@ -12,7 +12,11 @@ SRCS := MainWindow.cs yuv3.cs AppState.cs DisplayYUVControl.cs YUVFile.cs \
 RSRC_OPTS := -resource:rsrc/bg_1.png,MainBackground.png
 LOCATED_SRCS := $(SRCS:%=src/%)
 
-all: dirs $(BINDIR)/yuv3.exe 
+all: dirs $(BINDIR)/yuv3.exe $(BINDIR)/yuv3
+
+$(BINDIR)/yuv3: rsrc/yuv3.sh
+	install -m 0755 $^ $@
+
 
 dirs:
 	if [ ! -d $(BINDIR) ]; then mkdir $(BINDIR); fi
@@ -22,7 +26,7 @@ clean:
 
 
 $(BINDIR)/yuv3.exe: $(LOCATED_SRCS) rsrc/bg_1.png
-	mcs $(LOCATED_SRCS) $(CSFLAGS) $(RSRC_OPTS) -out:$(BINDIR)/yuv3.exe -main:yuv3main -pkg:dotnet
+	mcs -pkg:dotnet $(LOCATED_SRCS) $(CSFLAGS) $(RSRC_OPTS) -out:$(BINDIR)/yuv3.exe -main:yuv3main -pkg:dotnet
 
 # End file.
 
